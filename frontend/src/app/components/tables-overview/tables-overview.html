@@ -1,0 +1,49 @@
+<section aria-labelledby="tables-heading" class="text-[#362c40]">
+  <div class="flex items-center justify-between gap-3 pt-1 pb-[18px]">
+    <div>
+      <h2 id="tables-heading" class="text-[22px] leading-[1.3] font-semibold tracking-[-0.035em]">
+        Así están tus mesas
+      </h2>
+      <p class="mt-[5px] text-xs text-[#6c6375]">Elige una mesa para tomar un pedido.</p>
+    </div>
+    <button
+      type="button"
+      class="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a7592f]"
+    >
+      Ver todas
+      <svg lucideArrowRight [size]="16" [strokeWidth]="1.7" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <div class="flex gap-4 text-xs text-[#6c6375]" aria-label="Estados de las mesas">
+    <span class="inline-flex items-center gap-[5px]"
+      ><span
+        class="size-[9px] rounded-[3px] border border-[#cfc5da] bg-white"
+        aria-hidden="true"
+      ></span
+      >Libre</span
+    >
+    <span class="inline-flex items-center gap-[5px]"
+      ><span class="size-[9px] rounded-[3px] bg-[#655273]" aria-hidden="true"></span>Ocupada</span
+    >
+  </div>
+  <div
+    class="grid grid-cols-3 gap-[9px] pt-[22px] pb-6 max-[360px]:grid-cols-2 min-[681px]:grid-cols-4 min-[1201px]:gap-3"
+  >
+    <app-table-card number="01" details="2 personas"></app-table-card>
+    <app-table-card number="02" details="4 personas"></app-table-card>
+    <app-table-card number="03" details="2 productos" [occupied]="true"></app-table-card>
+    <app-table-card number="04" details="2 personas"></app-table-card>
+    <app-table-card number="05" details="4 productos" [occupied]="true"></app-table-card>
+    <app-table-card number="06" details="4 personas"></app-table-card>
+    <app-table-card number="07" details="2 personas"></app-table-card>
+    <app-table-card number="08" details="3 productos" [occupied]="true"></app-table-card>
+    <app-table-card number="09" details="4 personas"></app-table-card>
+    <app-table-card number="10" details="2 productos" [occupied]="true"></app-table-card>
+    <app-table-card number="11" details="4 personas"></app-table-card>
+    <app-table-card number="12" details="4 productos" [occupied]="true"></app-table-card>
+  </div>
+  <div class="flex justify-between border-t border-[#e5e1e9] py-[13px] text-xs text-[#6c6375]">
+    <span>Salón de ejemplo</span>
+    <span>12 mesas</span>
+  </div>
+</section>

@@ -1,0 +1,33 @@
+<button
+  type="button"
+  [attr.aria-label]="
+    'Mesa ' + number() + ', ' + (occupied() ? 'ocupada' : 'libre') + ', ' + details()
+  "
+  [class]="
+    'flex min-h-[118px] w-full flex-col rounded-[11px] border p-2.5 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a7592f] min-[681px]:min-h-[125px] min-[681px]:p-3.5 min-[951px]:p-2.5 min-[1201px]:min-h-32 min-[1201px]:p-3.5 ' +
+    (occupied()
+      ? 'border-[#655273] bg-[#655273] text-white'
+      : 'border-[#ded5e7] bg-white text-[#362c40]')
+  "
+>
+  <span class="mb-1.5 text-xs font-medium">Mesa</span>
+  <span
+    class="mb-auto text-[34px] leading-[1.2] font-medium tracking-[-0.055em] tabular-nums min-[681px]:text-[40px] min-[951px]:text-[31px] min-[1201px]:text-[38px]"
+  >
+    {{ number() }}
+  </span>
+  <span class="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+    <span [class]="'text-xs ' + (occupied() ? 'text-[#e5ddeb]' : 'text-[#6c6375]')">{{
+      details()
+    }}</span>
+    <span
+      [class]="
+        'inline-flex items-center gap-[5px] text-[11px] ' +
+        (occupied() ? 'text-white' : 'text-[#6c6375]')
+      "
+    >
+      <span class="size-[5px] rounded-full bg-current" aria-hidden="true"></span>
+      {{ occupied() ? 'Ocupada' : 'Libre' }}
+    </span>
+  </span>
+</button>
