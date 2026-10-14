@@ -4,6 +4,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -26,6 +27,13 @@ public class MeResource {
             token.getSubject(), 
             identity.getPrincipal().getName(), 
             identity.getRoles());
+    }
+
+    @GET 
+    @Path("/owner-check")
+    @RolesAllowed("owner")
+    public MeResponse ownerCheck() {
+        return me();
     }
 
     public record MeResponse(
