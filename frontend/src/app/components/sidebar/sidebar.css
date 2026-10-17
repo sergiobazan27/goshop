@@ -185,6 +185,7 @@ svg {
     border-top: 1px solid #594b63;
   }
   .profile strong {
+    overflow-wrap: anywhere;
     font-size: 12px;
     font-weight: 500;
   }

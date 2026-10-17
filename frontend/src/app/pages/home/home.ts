@@ -7,7 +7,7 @@ import { TablesOverview } from '../../components/tables-overview/tables-overview
 import { RecentOrders } from '../../components/recent-orders/recent-orders';
 import { OrdersTable } from '../../components/orders-table/orders-table';
 import { Footer } from '../../components/footer/footer';
-import { HttpClient } from '@angular/common/http';
+import { CurrentUserService } from '../../core/services/current-user.service';
 
 @Component({
   imports: [
@@ -27,18 +27,12 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './home.html',
 })
 export class Home implements OnInit {
-  private readonly http = inject(HttpClient);
+  private readonly currentUserService = inject(CurrentUserService);
 
   ngOnInit(): void {
-    this.http
-      .get<{
-        sub: string;
-        username: string;
-        roles: string[];
-      }>('http://localhost:8080/api/me')
-      .subscribe({
-        next: (user) => console.info('Usuario autenticado: ', user),
-        error: (error) => console.error('Error consultado /api/me: ', error),
-      });
+    this.currentUserService.getMe().subscribe({
+      next: (user) => console.info('Usuario autenticado: ', user),
+      error: (error) => console.error('Error consultado /api/me: ', error),
+    });
   }
 }

@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
+import { environment } from '../../environments/environment';
 
 export const keycloak = new Keycloak({
-  url: 'http://localhost:8180',
-  realm: 'goshop',
-  clientId: 'goshop-web',
+  ...environment.keycloak,
+  url: new URL(environment.keycloak.url, window.location.origin).href,
 });

@@ -1,32 +1,29 @@
 <header
   class="flex h-16 items-center gap-2.5 bg-[#f3f2f5] px-[18px] min-[681px]:h-[72px] min-[681px]:gap-[18px] min-[681px]:px-6 min-[1201px]:px-9"
 >
-  <h1 class="flex-1 text-xs font-semibold text-[#6c6375] min-[681px]:font-normal">
-    Café Olivo
+  <p class="flex-1 text-xs font-semibold text-[#6c6375] min-[681px]:font-normal">
+    {{ businessName() }}
     <span class="mx-2.5 hidden text-[#aaa0b0] min-[681px]:inline" aria-hidden="true">/</span>
-    <strong class="hidden font-medium text-[#362c40] min-[681px]:inline">Panel de servicio</strong>
-  </h1>
+    <strong class="hidden font-medium text-[#362c40] min-[681px]:inline">{{
+      sectionName()
+    }}</strong>
+  </p>
   <button
     type="button"
     popovertarget="profile-menu"
     class="grid size-[30px] shrink-0 cursor-pointer place-items-center rounded-full bg-[#e6e0ec] text-xs text-[#362c40] hover:bg-[#d7cfe0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#63536e] min-[681px]:size-[34px]"
-    aria-label="Abrir opciones de cuenta de SB"
+    [attr.aria-label]="'Abrir opciones de cuenta de ' + accountName()"
   >
-    SB
+    {{ accountName().slice(0, 2).toUpperCase() }}
   </button>
   <div
     id="profile-menu"
     popover
     class="fixed inset-auto top-14 right-[18px] m-0 w-44 overflow-hidden rounded-xl border border-[#e5e1e9] bg-white p-1.5 text-sm text-[#362c40] shadow-lg min-[681px]:top-[60px] min-[681px]:right-6 min-[1201px]:right-9"
   >
-    <button
-      type="button"
-      popovertarget="profile-menu"
-      popovertargetaction="hide"
-      class="block w-full cursor-pointer rounded-lg px-3 py-2.5 text-left hover:bg-[#eeebf2] focus-visible:bg-[#eeebf2]"
-    >
-      Mi perfil
-    </button>
+    <p class="truncate border-b border-[#e5e1e9] px-3 py-2.5 text-xs text-[#6c6375]">
+      {{ accountName() }}
+    </p>
     <button
       type="button"
       (click)="logout()"

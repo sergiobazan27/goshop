@@ -1,0 +1,178 @@
+<a
+  class="fixed top-3 left-3 z-40 -translate-y-[160%] rounded-lg bg-[#362c40] px-[18px] py-3 text-white focus:translate-y-0"
+  href="#admin-content"
+  >Saltar al contenido</a
+>
+<app-sidebar mode="admin" [username]="username"></app-sidebar>
+<div class="admin-workspace">
+  <app-header
+    businessName="Goshop"
+    sectionName="Administración"
+    [accountName]="username"
+  ></app-header>
+  <main id="admin-content" tabindex="-1">
+    <div class="page-heading">
+      <div>
+        <h1>Negocios</h1>
+        <p>Un lugar para cada café y restaurante de tu plataforma.</p>
+      </div>
+      <button class="primary-button" type="button" (click)="createForm().open()">
+        <svg lucidePlus [size]="19" aria-hidden="true"></svg> Nuevo negocio
+      </button>
+    </div>
+
+    @if (success()) {
+      <div
+        class="mb-[22px] flex items-start gap-2.5 rounded-[10px] border border-[#bdd4c6] bg-[#edf5ef] px-[18px] py-[15px] text-[13px] leading-[1.6] text-[#30583f]"
+        role="status"
+      >
+        <svg lucideCheck class="mt-px shrink-0" [size]="20" aria-hidden="true"></svg>
+        <p>{{ success() }}</p>
+      </div>
+    }
+
+    <div class="admin-columns">
+      <section class="business-panel" aria-labelledby="businesses-heading">
+        <div class="panel-heading">
+          <div>
+            <h2 id="businesses-heading">
+              Negocios creados <span class="count">{{ businesses().length }}</span>
+            </h2>
+            <p>Durante esta sesión</p>
+          </div>
+          <svg lucideStore [size]="23" class="panel-icon" aria-hidden="true"></svg>
+        </div>
+        <div class="list-notice">
+          Aquí aparecen los negocios que crees en esta sesión. El listado completo estará disponible
+          próximamente. Los negocios creados se conservan aunque cierres esta página.
+        </div>
+        <div class="filters">
+          <label class="search-field">
+            <svg lucideSearch [size]="18" aria-hidden="true"></svg>
+            <span class="sr-only">Buscar negocios creados por nombre</span>
+            <input
+              type="search"
+              placeholder="Buscar por nombre"
+              [value]="search()"
+              (input)="search.set($any($event.target).value)"
+            />
+          </label>
+          <label class="status-filter">
+            <span class="sr-only">Estado del negocio</span>
+            <select [value]="status()" (change)="status.set($any($event.target).value)">
+              <option value="">Todos los estados</option>
+              <option value="ACTIVE">Activos</option>
+              <option value="SUSPENDED">Suspendidos</option>
+            </select>
+          </label>
+        </div>
+
+        @if (filteredBusinesses().length) {
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">
+                Negocios creados en esta sesión, filtrados por nombre y estado
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Negocio</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Creación</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (business of filteredBusinesses(); track business.id) {
+                  <tr>
+                    <td>
+                      <div class="business-identity">
+                        <span class="business-letter" aria-hidden="true">{{
+                          business.name.charAt(0).toLocaleUpperCase('es')
+                        }}</span>
+                        <div class="business-details">
+                          <strong>{{ business.name }}</strong
+                          ><span class="business-id" [title]="business.id">{{ business.id }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        class="status-badge"
+                        [class.suspended]="business.status === 'SUSPENDED'"
+                        >{{ business.status === 'ACTIVE' ? 'Activo' : 'Suspendido' }}</span
+                      >
+                    </td>
+                    <td class="created-at">{{ business.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="list-footer" aria-live="polite">
+            {{ filteredBusinesses().length }} de {{ businesses().length }} negocios en esta sesión
+          </p>
+        } @else {
+          <div class="empty-state">
+            <span
+              class="mb-[22px] grid size-[68px] place-items-center rounded-[18px] border border-[#e5e1e9] bg-[#f7f5f9] text-[#655273]"
+              ><svg lucideStore [size]="30" [strokeWidth]="1.5" aria-hidden="true"></svg
+            ></span>
+            @if (businesses().length) {
+              <h3>No encontramos coincidencias</h3>
+              <p>Prueba otro nombre o cambia el filtro de estado.</p>
+              <button type="button" class="text-button" (click)="clearFilters()">
+                Limpiar filtros
+              </button>
+            } @else {
+              <h3>El próximo negocio empieza aquí</h3>
+              <p>
+                Crea un negocio y vincula a su dueño para que pueda empezar a configurar su
+                operación.
+              </p>
+              <button type="button" class="text-button" (click)="createForm().open()">
+                <svg lucidePlus [size]="17" aria-hidden="true"></svg> Crear un negocio
+              </button>
+            }
+          </div>
+        }
+      </section>
+
+      <aside class="rounded-2xl bg-[#e8e0ef] p-[25px]" aria-labelledby="guide-heading">
+        <span class="mb-4 block text-[#655273]"
+          ><svg lucideShieldCheck [size]="24" [strokeWidth]="1.6" aria-hidden="true"></svg
+        ></span>
+        <h2 id="guide-heading" class="text-[21px] font-semibold tracking-[-0.035em]">
+          Un buen comienzo
+        </h2>
+        <p class="mt-2.5 text-[13px] leading-[1.8] text-[#655273]">
+          Antes de dar de alta un negocio, ten listo al usuario que estará a cargo.
+        </p>
+        <ol
+          class="mt-6 list-decimal space-y-5 pl-5 marker:text-xs marker:text-[#655273] [&_li]:pl-2 [&_strong]:block [&_strong]:text-[13px] [&_strong]:font-semibold [&_span]:mt-1.5 [&_span]:block [&_span]:text-xs [&_span]:leading-[1.8] [&_span]:text-[#655273]"
+        >
+          <li>
+            <strong>Prepara al dueño</strong
+            ><span>Crea o elige un usuario habilitado en Keycloak con el rol owner.</span>
+          </li>
+          <li>
+            <strong>Vincula su negocio</strong
+            ><span>Usa su ID para crear el negocio. No debe pertenecer a otro.</span>
+          </li>
+          <li>
+            <strong>Todo listo para entrar</strong
+            ><span>El dueño puede iniciar sesión y consultar su negocio.</span>
+          </li>
+        </ol>
+        <div class="mt-6 border-t border-[#cfc1da] pt-[18px] text-xs leading-[1.7] text-[#655273]">
+          Administras la plataforma. Cada dueño administra su propio negocio.
+        </div>
+      </aside>
+    </div>
+    <footer
+      class="mt-8 flex flex-wrap items-center gap-x-[18px] gap-y-2 border-t border-[#e5e1e9] pt-5 text-[11px] text-[#6c6375]"
+    >
+      <strong class="text-[17px] font-semibold tracking-[-0.05em] text-[#655273]">goshop.</strong
+      ><span>Administración de la plataforma</span>
+    </footer>
+  </main>
+</div>
+<app-business-create-form (created)="businessCreated($event)"></app-business-create-form>

@@ -1,0 +1,90 @@
+<dialog
+  #dialog
+  aria-labelledby="create-business-title"
+  aria-describedby="create-business-description"
+  (cancel)="cancel($event)"
+>
+  <div class="dialog-heading">
+    <div>
+      <h2 id="create-business-title">Nuevo negocio</h2>
+      <p id="create-business-description">Dale un lugar a un nuevo negocio en Goshop.</p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Cerrar formulario"
+      [disabled]="saving()"
+      (click)="close()"
+    >
+      <svg lucideX [size]="20" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="saving()">
+    <div class="field">
+      <label for="business-name">Nombre del negocio</label>
+      <input
+        id="business-name"
+        formControlName="name"
+        maxlength="150"
+        autocomplete="organization"
+        placeholder="Ej. Café Olivo"
+        autofocus
+        [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        aria-describedby="business-name-help"
+      />
+      <p
+        id="business-name-help"
+        [class.field-error]="form.controls.name.touched && form.controls.name.invalid"
+      >
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          Escribe un nombre de hasta 150 caracteres.
+        } @else {
+          El nombre que identificará al café o restaurante.
+        }
+      </p>
+    </div>
+    <div class="field">
+      <label for="owner-id">ID del dueño en Keycloak</label>
+      <input
+        id="owner-id"
+        formControlName="ownerKeycloakUserId"
+        maxlength="255"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Pega el ID del usuario"
+        [attr.aria-invalid]="
+          form.controls.ownerKeycloakUserId.touched && form.controls.ownerKeycloakUserId.invalid
+        "
+        aria-describedby="owner-id-help"
+      />
+      <p
+        id="owner-id-help"
+        [class.field-error]="
+          form.controls.ownerKeycloakUserId.touched && form.controls.ownerKeycloakUserId.invalid
+        "
+      >
+        @if (
+          form.controls.ownerKeycloakUserId.touched && form.controls.ownerKeycloakUserId.invalid
+        ) {
+          Escribe el ID del usuario que será dueño del negocio.
+        } @else {
+          El usuario debe estar habilitado y tener el rol owner.
+        }
+      </p>
+    </div>
+    <div class="owner-note">
+      Un dueño pertenece a un solo negocio. Al crear el negocio, quedará vinculado automáticamente.
+    </div>
+    @if (error()) {
+      <p class="submit-error" role="alert">{{ error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="secondary-button" [disabled]="saving()" (click)="close()">
+        Cancelar
+      </button>
+      <button type="submit" class="primary-button" [disabled]="saving()">
+        {{ saving() ? 'Creando negocio…' : 'Crear negocio' }}
+      </button>
+    </div>
+  </form>
+</dialog>

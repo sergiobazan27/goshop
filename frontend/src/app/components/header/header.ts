@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { keycloak } from '../../auth/keycloak';
 
 @Component({
@@ -8,6 +8,10 @@ import { keycloak } from '../../auth/keycloak';
   templateUrl: './header.html',
 })
 export class Header {
+  readonly businessName = input('Café Olivo');
+  readonly sectionName = input('Panel de servicio');
+  readonly accountName = input('SB');
+
   async logout() {
     try {
       await keycloak.logout({

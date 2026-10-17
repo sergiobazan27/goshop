@@ -1,13 +1,16 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { defer, switchMap } from 'rxjs';
 import { keycloak } from './keycloak';
+import { environment } from '../../environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const url = new URL(request.url, window.location.origin);
+  const apiUrl = new URL(environment.apiUrl, window.location.origin);
+  const apiPath = apiUrl.pathname.replace(/\/+$/, '');
 
   const isOurApi =
-    url.origin === 'http://localhost:8080' &&
-    (url.pathname === '/api' || url.pathname.startsWith('/api/'));
+    url.origin === apiUrl.origin &&
+    (url.pathname === apiPath || url.pathname.startsWith(`${apiPath}/`));
 
   if (!isOurApi) {
     return next(request);
