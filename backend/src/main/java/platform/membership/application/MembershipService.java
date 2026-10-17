@@ -12,47 +12,50 @@ import platform.business.infrastructure.persistence.BusinessEntity;
 import platform.membership.domain.MembershipRole;
 import platform.membership.infrastructure.persistence.MembershipEntity;
 import platform.membership.infrastructure.persistence.MembershipRepository;
+import shared.application.BusinessConflictException;
 
 @ApplicationScoped
 public class MembershipService {
 
-    private final MembershipRepository membershipRepository;
+  private final MembershipRepository membershipRepository;
 
-    @Inject 
-    public MembershipService(MembershipRepository membershipRepository) {
-        this.membershipRepository = membershipRepository;
+  @Inject
+  public MembershipService(MembershipRepository membershipRepository) {
+    this.membershipRepository = membershipRepository;
+  }
+
+  @Transactional(TxType.MANDATORY)
+  @RolesAllowed("admin")
+  public MembershipEntity assignOwner(
+    @NotNull BusinessEntity business,
+    @NotBlank @Size(max = 255) String keycloakUserId
+  ) {
+    if (business.id == null) {
+      throw new IllegalArgumentException(
+        "El negocio debe estar persistido antes de asignar el dueño."
+      );
     }
 
-    @Transactional(TxType.MANDATORY)
-    @RolesAllowed("admin")
-    public MembershipEntity assignOwner(
-        @NotNull BusinessEntity business,
-        @NotBlank @Size(max = 255) String keycloakUserId
+    if (membershipRepository
+      .findByKeycloakUserId(keycloakUserId)
+      .isPresent()
     ) {
-        if (business.id == null) {
-            throw new IllegalArgumentException(
-                "El negocio debe estar persistido antes de asignar el dueño."
-            );
-        }
-        
-        if (membershipRepository
-            .findByKeycloakUserId(keycloakUserId)
-            .isPresent()
-        ) {
-            throw new IllegalArgumentException("El usuario ya pertenece a un negocio");
-        }
-
-        if (membershipRepository.existsOwnerByBusinessId(business.id)) {
-            throw new IllegalArgumentException("El negocio ya tiene dueño.");
-        }
-
-        MembershipEntity membership = new MembershipEntity();
-        membership.keycloakUserId = keycloakUserId;
-        membership.business = business;
-        membership.role = MembershipRole.OWNER;
-
-        membershipRepository.persist(membership);
-
-        return membership;
+      throw new BusinessConflictException(
+        "Membership.UserAlreadyAssigned", "El usuario ya pertenece a un negocio.");
     }
+
+    if (membershipRepository.existsOwnerByBusinessId(business.id)) {
+      throw new BusinessConflictException(
+        "Membership.OwnerAlreadyAssigned", "El negocio ya tiene un dueño.");
+    }
+
+    MembershipEntity membership = new MembershipEntity();
+    membership.keycloakUserId = keycloakUserId;
+    membership.business = business;
+    membership.role = MembershipRole.OWNER;
+
+    membershipRepository.persist(membership);
+
+    return membership;
+  }
 }

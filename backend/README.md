@@ -53,6 +53,44 @@ You can then execute your native executable with: `./target/backend-1.0.0-SNAPSH
 
 If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
 
+## Business onboarding and exception handling
+
+`POST /api/admin/businesses` requires an authenticated user with the `admin` realm role:
+
+```json
+{
+  "name": "Café Olivo",
+  "ownerKeycloakUserId": "existing-keycloak-user-id"
+}
+```
+
+The owner must exist, be enabled, and have the `owner` realm role. Keycloak is queried before
+the PostgreSQL transaction. The business and its owner membership are committed together;
+an unchecked exception leaving the transactional service automatically rolls back both writes.
+No manual rollback flags or `rollbackOn` configuration are needed. Subscription assignment
+and administrative auditing are not yet implemented by this endpoint.
+
+Services return entities on success and throw custom `RuntimeException` subclasses for business
+failures. `BusinessExceptionMapper` translates `ResourceNotFoundException` to `404`,
+`BusinessRuleException` to `422`, and `BusinessConflictException` to `409`, using
+`{"code":"Membership.UserAlreadyAssigned","message":"El usuario ya pertenece a un negocio."}`.
+Success returns `201` with a `BusinessResponse`. Input validation remains `400`, and Quarkus
+continues to enforce `401`/`403`. Keycloak transport/technical-account failures return `503`;
+unexpected failures are logged server-side and return `500` without technical details.
+
+For development, Hibernate uses schema `update`. The single-owner constraint requires this
+PostgreSQL index after the tables exist (no Flyway is used):
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS uq_membership_owner_per_business
+    ON membership (business_id) WHERE role = 'OWNER';
+```
+
+Review existing data before creating this index. PostgreSQL unique-key violations (SQLSTATE
+`23505`), including conflicts detected at commit, return a generic `409` with code `Data.Conflict`
+after rollback. Other persistence errors remain technical failures. Services do not catch these
+exceptions or inspect constraint names; HTTP translation happens in the API layer.
+
 ## Related Guides
 
 - REST ([guide](https://quarkus.io/guides/rest)): Build RESTful web services and APIs using Jakarta REST (formerly JAX-RS)
