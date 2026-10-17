@@ -1,5 +1,8 @@
 package platform.membership.application;
 
+import java.util.Optional;
+
+import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -22,6 +25,26 @@ public class MembershipService {
   @Inject
   public MembershipService(MembershipRepository membershipRepository) {
     this.membershipRepository = membershipRepository;
+  }
+
+  @Authenticated
+  @Transactional
+  public Optional<MembershipSummary> findSummaryByKeycloakUserId(
+    @NotBlank @Size(max = 255) String keycloakUserId
+  ) {
+    return membershipRepository.findByKeycloakUserId(keycloakUserId)
+      .map(membership -> {
+        var business = membership.business;
+
+        return new MembershipSummary(
+          membership.role,
+          new MembershipSummary.BusinessSummary(
+            business.id,
+            business.name,
+            business.status
+          )
+        );
+      });
   }
 
   @Transactional(TxType.MANDATORY)

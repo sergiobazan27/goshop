@@ -4,6 +4,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import shared.application.AccessDeniedException;
 import shared.application.BusinessConflictException;
 import shared.application.BusinessException;
 import shared.application.ResourceNotFoundException;
@@ -13,6 +14,7 @@ public class BusinessExceptionMapper implements ExceptionMapper<BusinessExceptio
   @Override
   public Response toResponse(BusinessException exception) {
     int status = switch (exception) {
+      case AccessDeniedException _ -> 403;
       case ResourceNotFoundException _ -> 404;
       case BusinessConflictException _ -> 409;
       default -> 422;

@@ -91,6 +91,24 @@ Review existing data before creating this index. PostgreSQL unique-key violation
 after rollback. Other persistence errors remain technical failures. Services do not catch these
 exceptions or inspect constraint names; HTTP translation happens in the API layer.
 
+## Current business access
+
+`CurrentBusinessService.requireActiveBusiness()` requires the `owner` or `waiter` role,
+looks up membership using the authenticated JWT subject, and returns the active business
+summary. Missing membership returns `403` with code `Membership.Required`; an inactive
+business returns `403` with code `Business.Inactive`. The caller supplies no business or user ID.
+
+`GET /api/me/owner-check` additionally requires the `owner` role and invokes this check.
+`GET /api/me` remains a profile endpoint: users without membership, including platform
+administrators, can still retrieve their profile. Administrative endpoints remain independent
+of operational business membership.
+
+Future operational services must invoke this check and scope resource queries to the returned
+business ID. A caller-supplied product, table, or order ID is not proof of business ownership.
+For writes, perform the check and the persistence operation within the same service transaction.
+The current access check does not grant permissions for specific actions beyond its role check;
+each endpoint must also enforce the roles required for its operation.
+
 ## Related Guides
 
 - REST ([guide](https://quarkus.io/guides/rest)): Build RESTful web services and APIs using Jakarta REST (formerly JAX-RS)
