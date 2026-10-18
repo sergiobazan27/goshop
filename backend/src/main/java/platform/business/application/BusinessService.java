@@ -6,32 +6,49 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import platform.business.domain.BusinessStatus;
 import platform.business.infrastructure.persistence.BusinessEntity;
 import platform.business.infrastructure.persistence.BusinessRepository;
 import platform.membership.application.MembershipService;
+import shared.application.Page;
 
 @ApplicationScoped
 public class BusinessService {
 
-    private final BusinessRepository businessRepository;
-    private final MembershipService membershipService;
+  private final BusinessRepository businessRepository;
+  private final MembershipService membershipService;
 
-    @Inject
-    public BusinessService(BusinessRepository businessRepository, MembershipService membershipService) {
-        this.businessRepository = businessRepository;
-        this.membershipService = membershipService;
-    }
+  @Inject
+  public BusinessService(
+    BusinessRepository businessRepository,
+    MembershipService membershipService
+  ) {
+    this.businessRepository = businessRepository;
+    this.membershipService = membershipService;
+  }
 
-    @Transactional
-    @RolesAllowed("admin")
-    public BusinessEntity createWithOwner(@NotBlank @Size(max = 150) String name, @NotBlank @Size(max = 255) String ownerKeycloakUserId) {
-        BusinessEntity business = new BusinessEntity();
-        business.name = name.strip();
+  @Transactional
+  @RolesAllowed("admin")
+  public Page<BusinessEntity> list(String search, BusinessStatus status, int page, int size) {
+    var query = businessRepository.search(search, status);
+    long total = query.count();
+    var items = query.page(page, size).list();
+    return new Page<>(items, page, size, total, (total + size - 1) / size);
+  }
 
-        businessRepository.persist(business);
+  @Transactional
+  @RolesAllowed("admin")
+  public BusinessEntity createWithOwner(
+    @NotBlank @Size(max = 150) String name,
+    @NotBlank @Size(max = 255) String ownerKeycloakUserId
+  ) {
+    BusinessEntity business = new BusinessEntity();
+    business.name = name.strip();
 
-        membershipService.assignOwner(business, ownerKeycloakUserId);
+    businessRepository.persist(business);
 
-        return business;
-    }
+    membershipService.assignOwner(business, ownerKeycloakUserId);
+
+    return business;
+  }
 }

@@ -91,6 +91,31 @@ Review existing data before creating this index. PostgreSQL unique-key violation
 after rollback. Other persistence errors remain technical failures. Services do not catch these
 exceptions or inspect constraint names; HTTP translation happens in the API layer.
 
+## Business listing
+
+`GET /api/admin/businesses` requires the `admin` realm role; no business membership is required.
+
+```text
+/api/admin/businesses?search=olivo&status=ACTIVE&page=0&size=10
+```
+
+- `search`: optional case-insensitive name substring, trimmed, at most 150 characters.
+  `%`, `_`, and `!` are literal characters; all values use query parameters.
+- `status`: optional `ACTIVE` or `SUSPENDED`.
+- `page`: zero-based, defaults to `0`, accepted range `0..1000000`.
+- `size`: defaults to `10`, accepted range `1..100`.
+
+Results are ordered by `createdAt` descending, then `id` descending for deterministic ties.
+The response contains `items` (business DTOs), `page`, `size`, `total`, and `totalPages`.
+An empty result has `items: []`, `total: 0`, and `totalPages: 0`. A page beyond the last
+returns no items while retaining the total. Invalid query parameters return `400`;
+unauthenticated users receive `401` and non-administrators receive `403`.
+
+From `backend/`, run `./mvnw test` for the HTTP and PostgreSQL listing tests (Docker required),
+or `./mvnw package` to run them and package the application. Tests use disposable PostgreSQL
+with an isolated profile and simulated security identities. They never query the development
+Keycloak or Compose database.
+
 ## Current business access
 
 `CurrentBusinessService.requireActiveBusiness()` requires the `owner` or `waiter` role,

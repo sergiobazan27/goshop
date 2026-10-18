@@ -23,11 +23,17 @@ mediante el interceptor de autenticación existente. Requiere un dueño habilita
 con rol `owner`, que todavía no pertenezca a otro negocio. Se muestran errores de validación,
 permisos, pertenencia y disponibilidad sin descartar lo escrito.
 
-La tabla permite buscar y filtrar los negocios creados durante la sesión de esta pestaña.
-Esta vista se reinicia al recargar; los registros creados permanecen en PostgreSQL.
-El backend todavía no ofrece una consulta de negocios: no se solicitan listados inexistentes,
-no se presentan datos de ejemplo ni se simula persistencia con almacenamiento del navegador.
-El listado global, suspensión, planes y suscripciones quedan pendientes de sus endpoints.
+La tabla consulta `GET /admin/businesses` al entrar y después de crear un negocio. El listado
+proviene de PostgreSQL y sigue disponible al recargar. El formulario de búsqueda aplica el
+nombre al pulsar **Buscar** o Enter; el selector aplica el estado inmediatamente. Ambas
+acciones vuelven a la primera página. Las páginas contienen 10 negocios, con controles
+**Anterior** y **Siguiente** y el total de coincidencias del servidor.
+
+`BusinessService.list()` envía `search`, `status`, `page` (base cero) y `size` usando `HttpParams`.
+Los contratos están en `core/models/business.model.ts` y `core/models/page.model.ts`.
+El panel muestra estados de carga, resultados vacíos y errores con reintento; cancela las
+consultas anteriores al cambiar los filtros o la página. No utiliza un listado temporal local.
+Suspensión, planes y suscripciones siguen pendientes de sus endpoints de escritura.
 
 Verificación: `npm run build` y `npm test -- --watch=false`. Las pruebas del formulario
 simulan HTTP y no crean negocios en el entorno real.

@@ -15,3 +15,10 @@ export interface CreateBusinessRequest {
   name: string;
   ownerKeycloakUserId: string;
 }
+
+export interface BusinessListQuery {
+  search: string;
+  status: BusinessStatus | '';
+  page: number;
+  size: number;
+}

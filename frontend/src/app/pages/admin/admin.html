@@ -32,46 +32,62 @@
     }
 
     <div class="admin-columns">
-      <section class="business-panel" aria-labelledby="businesses-heading">
+      <section
+        class="business-panel"
+        aria-labelledby="businesses-heading"
+        [attr.aria-busy]="loading()"
+      >
         <div class="panel-heading">
           <div>
             <h2 id="businesses-heading">
-              Negocios creados <span class="count">{{ businesses().length }}</span>
+              Todos los negocios
+              <span class="count">{{ error() ? '—' : loading() ? '…' : total() }}</span>
             </h2>
-            <p>Durante esta sesión</p>
+            <p>Consulta los negocios registrados en tu plataforma.</p>
           </div>
           <svg lucideStore [size]="23" class="panel-icon" aria-hidden="true"></svg>
         </div>
-        <div class="list-notice">
-          Aquí aparecen los negocios que crees en esta sesión. El listado completo estará disponible
-          próximamente. Los negocios creados se conservan aunque cierres esta página.
-        </div>
-        <div class="filters">
+        <form class="filters" (submit)="applyFilters($event)" role="search">
           <label class="search-field">
             <svg lucideSearch [size]="18" aria-hidden="true"></svg>
-            <span class="sr-only">Buscar negocios creados por nombre</span>
+            <span class="sr-only">Buscar negocios por nombre</span>
             <input
               type="search"
               placeholder="Buscar por nombre"
+              maxlength="150"
               [value]="search()"
               (input)="search.set($any($event.target).value)"
             />
           </label>
           <label class="status-filter">
             <span class="sr-only">Estado del negocio</span>
-            <select [value]="status()" (change)="status.set($any($event.target).value)">
+            <select
+              [value]="status()"
+              (change)="status.set($any($event.target).value); applyFilters()"
+            >
               <option value="">Todos los estados</option>
               <option value="ACTIVE">Activos</option>
               <option value="SUSPENDED">Suspendidos</option>
             </select>
           </label>
-        </div>
+          <button type="submit" class="primary-button">Buscar</button>
+        </form>
 
-        @if (filteredBusinesses().length) {
+        @if (loading()) {
+          <div class="empty-state" role="status" aria-live="polite">
+            <p>Cargando negocios…</p>
+          </div>
+        } @else if (error()) {
+          <div class="empty-state">
+            <h3>No pudimos mostrar los negocios</h3>
+            <p role="alert">{{ error() }}</p>
+            <button type="button" class="text-button" (click)="load()">Reintentar</button>
+          </div>
+        } @else if (businesses().length) {
           <div class="table-wrap">
             <table>
               <caption class="sr-only">
-                Negocios creados en esta sesión, filtrados por nombre y estado
+                Negocios registrados, filtrados por nombre y estado
               </caption>
               <thead>
                 <tr>
@@ -81,7 +97,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (business of filteredBusinesses(); track business.id) {
+                @for (business of businesses(); track business.id) {
                   <tr>
                     <td>
                       <div class="business-identity">
@@ -107,16 +123,13 @@
               </tbody>
             </table>
           </div>
-          <p class="list-footer" aria-live="polite">
-            {{ filteredBusinesses().length }} de {{ businesses().length }} negocios en esta sesión
-          </p>
         } @else {
           <div class="empty-state">
             <span
               class="mb-[22px] grid size-[68px] place-items-center rounded-[18px] border border-[#e5e1e9] bg-[#f7f5f9] text-[#655273]"
               ><svg lucideStore [size]="30" [strokeWidth]="1.5" aria-hidden="true"></svg
             ></span>
-            @if (businesses().length) {
+            @if (hasFilters()) {
               <h3>No encontramos coincidencias</h3>
               <p>Prueba otro nombre o cambia el filtro de estado.</p>
               <button type="button" class="text-button" (click)="clearFilters()">
@@ -133,6 +146,36 @@
               </button>
             }
           </div>
+        }
+        @if (!loading() && !error() && total() > 0) {
+          <nav
+            class="list-footer flex flex-wrap items-center justify-between gap-3"
+            aria-label="Paginación de negocios"
+          >
+            <p aria-live="polite">
+              {{ page() * size + 1 }}–{{ page() * size + businesses().length }} de
+              {{ total() }} negocios
+            </p>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                class="text-button disabled:cursor-default disabled:opacity-40"
+                [disabled]="page() === 0"
+                (click)="goToPage(page() - 1)"
+              >
+                Anterior
+              </button>
+              <span>Página {{ page() + 1 }} de {{ totalPages() }}</span>
+              <button
+                type="button"
+                class="text-button disabled:cursor-default disabled:opacity-40"
+                [disabled]="page() + 1 >= totalPages()"
+                (click)="goToPage(page() + 1)"
+              >
+                Siguiente
+              </button>
+            </div>
+          </nav>
         }
       </section>
 

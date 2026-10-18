@@ -110,15 +110,6 @@ select:focus-visible {
 .panel-icon {
   color: #81758c;
 }
-.list-notice {
-  margin: 0 22px 20px;
-  padding: 12px 14px;
-  border-left: 3px solid #c4b6cf;
-  background: #f7f5f9;
-  color: #6c6375;
-  font-size: 12px;
-  line-height: 1.7;
-}
 .filters {
   display: flex;
   flex-wrap: wrap;
