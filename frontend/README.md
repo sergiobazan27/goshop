@@ -33,7 +33,13 @@ acciones vuelven a la primera página. Las páginas contienen 10 negocios, con c
 Los contratos están en `core/models/business.model.ts` y `core/models/page.model.ts`.
 El panel muestra estados de carga, resultados vacíos y errores con reintento; cancela las
 consultas anteriores al cambiar los filtros o la página. No utiliza un listado temporal local.
-Suspensión, planes y suscripciones siguen pendientes de sus endpoints de escritura.
+Cada fila permite **Suspender** o **Reactivar** mediante un diálogo que explica el cambio.
+Cancelar o cerrar el diálogo no envía peticiones. Al confirmar, `BusinessService.changeStatus()`
+envía `PUT /admin/businesses/{id}/status` con el estado deseado. Se bloquean los envíos duplicados
+y el cierre mientras se guarda. Los errores mantienen abierto el diálogo para corregir o reintentar.
+Después del cambio se actualiza el listado conservando filtros y página; si deja de existir
+esa página, se consulta la última disponible. Los datos del negocio no se eliminan.
+Planes, suscripciones y auditoría siguen pendientes.
 
 Verificación: `npm run build` y `npm test -- --watch=false`. Las pruebas del formulario
 simulan HTTP y no crean negocios en el entorno real.

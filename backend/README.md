@@ -116,6 +116,29 @@ or `./mvnw package` to run them and package the application. Tests use disposabl
 with an isolated profile and simulated security identities. They never query the development
 Keycloak or Compose database.
 
+## Suspend and reactivate a business
+
+`PUT /api/admin/businesses/{id}/status` requires the `admin` realm role and accepts:
+
+```json
+{"status": "SUSPENDED"}
+```
+
+Use `ACTIVE` to reactivate. The operation sets the requested state, so repeating the same
+request is safe. It returns `200` with the updated `BusinessResponse`; an unchanged state
+does not modify the entity. A missing business returns `404` with code `Business.NotFound`;
+a missing or invalid status returns `400`. Non-administrators cannot change business states.
+
+Suspension retains business data and memberships. Operational checks return `403` while
+suspended; `/api/me` remains available so the user can see the business state. Reactivation
+restores operational access under the existing role and membership checks. No Keycloak user
+or session is disabled. Administrative auditing remains pending.
+
+The development CORS configuration allows `PUT` for the Angular origin. HTTP tests cover
+status changes, repeated requests, rejected payloads, permissions, and the active → suspended
+→ active access cycle with preserved membership. They use simulated OIDC claims and a
+disposable PostgreSQL container.
+
 ## Current business access
 
 `CurrentBusinessService.requireActiveBusiness()` requires the `owner` or `waiter` role,

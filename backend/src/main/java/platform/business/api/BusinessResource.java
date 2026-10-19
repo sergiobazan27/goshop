@@ -1,5 +1,6 @@
 package platform.business.api;
 
+import java.util.UUID;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -12,13 +13,16 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import platform.business.api.dto.BusinessResponse;
 import platform.business.api.dto.CreateBusinessRequest;
+import platform.business.api.dto.ChangeBusinessStatusRequest;
 import platform.business.application.BusinessOnboardingService;
 import platform.business.application.BusinessService;
 import platform.business.domain.BusinessStatus;
@@ -60,5 +64,14 @@ public class BusinessResource {
     return Response.status(Response.Status.CREATED)
       .entity(BusinessResponse.from(business))
       .build();
+  }
+
+  @PUT
+  @Path("/{id}/status")
+  public BusinessResponse changeStatus(
+    @PathParam("id") UUID id,
+    @NotNull @Valid ChangeBusinessStatusRequest request
+  ) {
+    return BusinessResponse.from(businessService.changeStatus(id, request.status()));
   }
 }

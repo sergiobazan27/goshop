@@ -1,7 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Business, BusinessListQuery, CreateBusinessRequest } from '../models/business.model';
+import {
+  Business,
+  BusinessListQuery,
+  CreateBusinessRequest,
+  ChangeBusinessStatusRequest,
+} from '../models/business.model';
 import { Page } from '../models/page.model';
 
 @Injectable({ providedIn: 'root' })
@@ -18,5 +23,9 @@ export class BusinessService {
 
   create(request: CreateBusinessRequest) {
     return this.http.post<Business>(this.endpoint, request);
+  }
+
+  changeStatus(id: string, request: ChangeBusinessStatusRequest) {
+    return this.http.put<Business>(`${this.endpoint}/${encodeURIComponent(id)}/status`, request);
   }
 }

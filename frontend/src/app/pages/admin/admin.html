@@ -94,6 +94,7 @@
                   <th scope="col">Negocio</th>
                   <th scope="col">Estado</th>
                   <th scope="col">Creación</th>
+                  <th scope="col">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -118,6 +119,19 @@
                       >
                     </td>
                     <td class="created-at">{{ business.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</td>
+                    <td>
+                      <button
+                        type="button"
+                        class="text-button"
+                        [attr.aria-label]="
+                          (business.status === 'ACTIVE' ? 'Suspender ' : 'Reactivar ') +
+                          business.name
+                        "
+                        (click)="statusDialog().open(business)"
+                      >
+                        {{ business.status === 'ACTIVE' ? 'Suspender' : 'Reactivar' }}
+                      </button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -219,3 +233,4 @@
   </main>
 </div>
 <app-business-create-form (created)="businessCreated($event)"></app-business-create-form>
+<app-business-status-dialog (updated)="businessStatusChanged($event)"></app-business-status-dialog>

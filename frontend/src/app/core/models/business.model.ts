@@ -1,5 +1,9 @@
 export type BusinessStatus = 'ACTIVE' | 'SUSPENDED';
 
+export interface ChangeBusinessStatusRequest {
+  status: BusinessStatus;
+}
+
 export interface BusinessSummary {
   id: string;
   name: string;

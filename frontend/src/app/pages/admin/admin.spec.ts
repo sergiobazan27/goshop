@@ -200,4 +200,63 @@ describe('Panel de administración', () => {
     expect(fixture.nativeElement.querySelector('dialog').open).toBe(true);
     expect(fixture.componentInstance.businesses()).toEqual([]);
   });
+
+  it('confirma la suspensión, conserva filtros y permite reactivar', () => {
+    const fixture = renderPage([createdBusiness]);
+    const page = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    page.status.set('ACTIVE');
+    page.applyFilters();
+    flushList([createdBusiness]);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('tbody button').click();
+    fixture.detectChanges();
+    const dialog = page.statusDialog();
+    http.expectNone((request) => request.method === 'PUT');
+    dialog.close();
+    expect(page.businesses()[0].status).toBe('ACTIVE');
+    dialog.open(createdBusiness);
+    dialog.confirm();
+    dialog.confirm();
+    const cancel = new Event('cancel', { cancelable: true });
+    dialog.cancel(cancel);
+    expect(cancel.defaultPrevented).toBe(true);
+    const suspend = http.expectOne(`${endpoint}/business-id/status`);
+    expect(suspend.request.method).toBe('PUT');
+    expect(suspend.request.body).toEqual({ status: 'SUSPENDED' });
+    const suspended: Business = { ...createdBusiness, status: 'SUSPENDED' };
+    suspend.flush(suspended);
+    const refreshed = flushList();
+    expect(refreshed.request.params.get('status')).toBe('ACTIVE');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('No encontramos coincidencias');
+    expect(dialog.saving()).toBe(false);
+    expect(page.success()).toContain('suspendido correctamente');
+    page.clearFilters();
+    flushList([suspended]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('tbody button').textContent).toContain('Reactivar');
+    dialog.open(suspended);
+    dialog.confirm();
+    const reactivate = http.expectOne(`${endpoint}/business-id/status`);
+    expect(reactivate.request.body).toEqual({ status: 'ACTIVE' });
+    reactivate.flush(createdBusiness);
+    flushList([createdBusiness]);
+    expect(page.success()).toContain('reactivado correctamente');
+  });
+
+  it('mantiene el estado y el diálogo si el cambio falla', () => {
+    const fixture = renderPage([createdBusiness]);
+    const dialog = fixture.componentInstance.statusDialog();
+    dialog.open(createdBusiness);
+    dialog.confirm();
+    TestBed.inject(HttpTestingController)
+      .expectOne(`${endpoint}/business-id/status`)
+      .flush({}, { status: 403, statusText: 'Forbidden' });
+    fixture.detectChanges();
+    expect(dialog.error()).toContain('no tiene permiso');
+    expect(dialog.saving()).toBe(false);
+    expect(fixture.componentInstance.businesses()[0].status).toBe('ACTIVE');
+    expect(fixture.nativeElement.querySelectorAll('dialog')[1].open).toBe(true);
+  });
 });

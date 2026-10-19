@@ -16,6 +16,7 @@ import { Sidebar } from '../../components/sidebar/sidebar';
 import { Business, BusinessListQuery } from '../../core/models/business.model';
 import { businessListError } from '../../core/errors/business-list-error';
 import { BusinessService } from '../../core/services/business.service';
+import { BusinessStatusDialog } from '../../components/business-status-dialog/business-status-dialog';
 
 @Component({
   selector: 'app-admin',
@@ -24,6 +25,7 @@ import { BusinessService } from '../../core/services/business.service';
     Header,
     Sidebar,
     BusinessCreateForm,
+    BusinessStatusDialog,
     LucidePlus,
     LucideSearch,
     LucideStore,
@@ -39,6 +41,7 @@ export class Admin implements OnInit {
   private readonly requests = new Subject<BusinessListQuery>();
   private filters: Pick<BusinessListQuery, 'search' | 'status'> = { search: '', status: '' };
   readonly createForm = viewChild.required(BusinessCreateForm);
+  readonly statusDialog = viewChild.required(BusinessStatusDialog);
   readonly username = keycloak.tokenParsed?.['preferred_username'] ?? 'Administrador';
   readonly businesses = signal<Business[]>([]);
   readonly search = signal('');
@@ -104,6 +107,13 @@ export class Admin implements OnInit {
     this.status.set('');
     this.success.set(`${business.name} se creó correctamente. Su dueño ya está vinculado.`);
     this.applyFilters();
+  }
+
+  businessStatusChanged(business: Business) {
+    this.success.set(
+      `${business.name}: negocio ${business.status === 'ACTIVE' ? 'reactivado' : 'suspendido'} correctamente.`,
+    );
+    this.load();
   }
 
   clearFilters() {

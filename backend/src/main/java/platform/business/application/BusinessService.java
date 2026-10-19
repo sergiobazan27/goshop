@@ -1,16 +1,19 @@
 package platform.business.application;
 
+import java.util.UUID;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import platform.business.domain.BusinessStatus;
 import platform.business.infrastructure.persistence.BusinessEntity;
 import platform.business.infrastructure.persistence.BusinessRepository;
 import platform.membership.application.MembershipService;
 import shared.application.Page;
+import shared.application.ResourceNotFoundException;
 
 @ApplicationScoped
 public class BusinessService {
@@ -25,6 +28,18 @@ public class BusinessService {
   ) {
     this.businessRepository = businessRepository;
     this.membershipService = membershipService;
+  }
+
+  @Transactional
+  @RolesAllowed("admin")
+  public BusinessEntity changeStatus(@NotNull UUID id, @NotNull BusinessStatus status) {
+    var business = businessRepository.findByIdOptional(id)
+      .orElseThrow(() -> new ResourceNotFoundException(
+        "Business.NotFound", "No se encontró el negocio."));
+    if (business.status != status) {
+      business.status = status;
+    }
+    return business;
   }
 
   @Transactional
