@@ -10,7 +10,7 @@ import { businessCreationError } from '../../core/errors/business-creation-error
   selector: 'app-business-create-form',
   imports: [ReactiveFormsModule, LucideX],
   templateUrl: './business-create-form.html',
-  styleUrl: './business-create-form.css',
+  styleUrl: '../../shared/styles/admin-form.css',
 })
 export class BusinessCreateForm {
   private readonly businessService = inject(BusinessService);

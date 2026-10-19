@@ -33,7 +33,7 @@ import { BusinessStatusDialog } from '../../components/business-status-dialog/bu
     LucideShieldCheck,
   ],
   templateUrl: './admin.html',
-  styleUrl: './admin.css',
+  styleUrl: '../../shared/styles/admin-panel.css',
 })
 export class Admin implements OnInit {
   private readonly businessService = inject(BusinessService);

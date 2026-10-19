@@ -17,6 +17,12 @@ export const routes: Routes = [
     title: 'Goshop · Panel de servicio',
   },
   {
+    path: 'admin/plans',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/plans/plans').then((module) => module.Plans),
+    title: 'Goshop · Planes',
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin/admin').then((module) => module.Admin),

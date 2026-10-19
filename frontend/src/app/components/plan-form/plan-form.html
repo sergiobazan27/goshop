@@ -1,0 +1,86 @@
+<dialog #dialog aria-labelledby="plan-form-title" (cancel)="cancel($event)">
+  <div class="dialog-heading">
+    <div>
+      <h2 id="plan-form-title">{{ editing() ? 'Editar plan' : 'Nuevo plan' }}</h2>
+      <p>Define los límites que ofrecerá este plan.</p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Cerrar formulario de plan"
+      [disabled]="saving()"
+      (click)="close()"
+    >
+      <svg lucideX [size]="20" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="saving()">
+    <div class="field">
+      <label for="plan-name">Nombre del plan</label>
+      <input
+        id="plan-name"
+        formControlName="name"
+        maxlength="100"
+        autofocus
+        placeholder="Ej. Básico"
+        [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        aria-describedby="plan-name-help"
+      />
+      <p
+        id="plan-name-help"
+        [class.field-error]="form.controls.name.touched && form.controls.name.invalid"
+      >
+        {{
+          form.controls.name.touched && form.controls.name.invalid
+            ? 'Escribe un nombre de hasta 100 caracteres.'
+            : 'Un nombre que permita reconocer el plan.'
+        }}
+      </p>
+    </div>
+    @for (limit of limits; track limit.key) {
+      <div class="field">
+        <label [for]="'plan-' + limit.key">{{ limit.label }}</label>
+        <input
+          [id]="'plan-' + limit.key"
+          type="number"
+          min="1"
+          max="2147483647"
+          step="1"
+          [formControlName]="limit.key"
+          [attr.aria-invalid]="form.controls[limit.key].touched && form.controls[limit.key].invalid"
+          [attr.aria-describedby]="'plan-' + limit.key + '-help'"
+        />
+        <p
+          [id]="'plan-' + limit.key + '-help'"
+          [class.field-error]="form.controls[limit.key].touched && form.controls[limit.key].invalid"
+        >
+          {{
+            form.controls[limit.key].touched && form.controls[limit.key].invalid
+              ? 'Escribe un entero positivo válido.'
+              : limit.key === 'maxUsers'
+                ? 'Incluye al dueño y a su equipo.'
+                : 'Número máximo permitido por negocio.'
+          }}
+        </p>
+      </div>
+    }
+    <label class="mt-6 flex cursor-pointer items-center gap-3"
+      ><input type="checkbox" formControlName="active" class="size-5 accent-[#655273]" /> Plan
+      activo</label
+    >
+    <p class="owner-note">
+      Un plan inactivo no se ofrecerá para nuevas asignaciones. Desactivarlo no elimina datos de los
+      negocios.
+    </p>
+    @if (error()) {
+      <p class="submit-error" role="alert">{{ error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="secondary-button" [disabled]="saving()" (click)="close()">
+        Cancelar</button
+      ><button type="submit" class="primary-button" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : editing() ? 'Guardar cambios' : 'Crear plan' }}
+      </button>
+    </div>
+  </form>
+</dialog>

@@ -19,11 +19,24 @@
         class="nav-link"
         routerLink="/admin"
         aria-label="Negocios"
-        aria-current="page"
+        routerLinkActive="selected"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
         title="Negocios"
       >
         <svg lucideStore [strokeWidth]="1.7" aria-hidden="true"></svg>
         <span>Negocios</span>
+      </a>
+      <a
+        class="nav-link"
+        routerLink="/admin/plans"
+        routerLinkActive="selected"
+        ariaCurrentWhenActive="page"
+        aria-label="Planes"
+        title="Planes"
+      >
+        <svg lucidePackage [strokeWidth]="1.7" aria-hidden="true"></svg>
+        <span>Planes</span>
       </a>
     } @else {
       <a class="nav-link" href="#inicio" aria-label="Resumen" aria-current="page" title="Resumen">

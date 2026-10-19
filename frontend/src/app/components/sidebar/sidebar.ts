@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   LucideArmchair,
   LucideLayoutDashboard,
@@ -11,6 +11,7 @@ import {
 @Component({
   imports: [
     RouterLink,
+    RouterLinkActive,
     LucideArmchair,
     LucideLayoutDashboard,
     LucidePackage,

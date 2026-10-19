@@ -39,7 +39,14 @@ envía `PUT /admin/businesses/{id}/status` con el estado deseado. Se bloquean lo
 y el cierre mientras se guarda. Los errores mantienen abierto el diálogo para corregir o reintentar.
 Después del cambio se actualiza el listado conservando filtros y página; si deja de existir
 esa página, se consulta la última disponible. Los datos del negocio no se eliminan.
-Planes, suscripciones y auditoría siguen pendientes.
+El catálogo de planes está disponible en **Planes** (`/admin/plans`), protegido por el mismo
+guard de administrador. Permite buscar y paginar, crear y editar el nombre, límites y estado.
+El formulario compartido de creación/edición valida enteros positivos y permite desactivar o
+reactivar el plan mediante **Plan activo**. Los cambios se guardan con `PlanService`, usando
+el environment; los contratos están en `core/models/plan.model.ts`.
+
+Los formularios y las pantallas administrativas reutilizan estilos locales en `shared/styles/`.
+Las suscripciones, aplicación de límites, vencimiento, cobros y auditoría siguen pendientes.
 
 Verificación: `npm run build` y `npm test -- --watch=false`. Las pruebas del formulario
 simulan HTTP y no crean negocios en el entorno real.

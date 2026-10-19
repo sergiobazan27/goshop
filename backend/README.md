@@ -139,6 +139,27 @@ status changes, repeated requests, rejected payloads, permissions, and the activ
 → active access cycle with preserved membership. They use simulated OIDC claims and a
 disposable PostgreSQL container.
 
+## Plan catalog
+
+The `platform.plan` feature manages the catalog independently of subscriptions. Admin-only routes:
+
+- `GET /api/admin/plans?search=basico&active=true&page=0&size=10`: paginated listing;
+  `search` and `active` are optional. Pagination follows the business listing contract.
+- `POST /api/admin/plans`: creates a plan and returns `201`.
+- `PUT /api/admin/plans/{id}`: replaces its editable details and returns `200`; missing IDs return `404` (`Plan.NotFound`).
+
+Both writes require `name` (nonblank, up to 100 characters), `maxTables`, `maxUsers`,
+`maxProducts` (whole numbers from 1 to 2147483647), and `active` (boolean). Decimal limits
+are rejected rather than truncated. Responses include these fields, `id`, `createdAt`, and `updatedAt`.
+Names are trimmed; searching is case-insensitive and treats wildcard characters literally.
+Authentication, role checks, validation, custom exceptions, and automatic transaction rollback
+follow the existing application conventions. Managed entity updates use automatic flushing at commit.
+
+Plans can be made inactive through editing; there is no delete route. This step does not assign
+subscriptions, enforce limits on restaurant operations, or implement pricing, billing, or expiration.
+Those rules will be added with subscriptions. Development Hibernate schema update creates the
+`plan` table; no migration tool is introduced.
+
 ## Current business access
 
 `CurrentBusinessService.requireActiveBusiness()` requires the `owner` or `waiter` role,

@@ -53,7 +53,7 @@ label {
   font-size: 13px;
   font-weight: 600;
 }
-input {
+input:not([type='checkbox']) {
   width: 100%;
   min-height: 46px;
   padding: 11px 13px;
