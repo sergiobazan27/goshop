@@ -1,0 +1,96 @@
+<dialog #dialog aria-labelledby="product-form-title" (cancel)="cancel($event)">
+  <div class="dialog-heading">
+    <div>
+      <h2 id="product-form-title">{{ editing() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+      <p>Define lo que ofrecerás en tu negocio.</p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Cerrar formulario de producto"
+      [disabled]="saving()"
+      (click)="close()"
+    >
+      <svg lucideX [size]="20" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="saving()">
+    <div class="field">
+      <label for="product-name">Nombre del producto</label>
+      <input
+        id="product-name"
+        formControlName="name"
+        maxlength="100"
+        autofocus
+        placeholder="Ej. Cappuccino"
+        [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        aria-describedby="product-name-help"
+      />
+      <p
+        id="product-name-help"
+        [class.field-error]="form.controls.name.touched && form.controls.name.invalid"
+      >
+        Usa un nombre único de hasta 100 caracteres.
+      </p>
+    </div>
+    <div class="field">
+      <label for="product-description"
+        >Descripción <span class="font-normal">(opcional)</span></label
+      >
+      <textarea
+        id="product-description"
+        formControlName="description"
+        maxlength="1000"
+        rows="3"
+        placeholder="Ingredientes o detalles que ayuden a elegir."
+        [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid"
+        aria-describedby="product-description-help"
+      ></textarea>
+      <p
+        id="product-description-help"
+        [class.field-error]="form.controls.description.touched && form.controls.description.invalid"
+      >
+        Hasta 1000 caracteres.
+      </p>
+    </div>
+    <div class="field">
+      <label for="product-price">Precio</label>
+      <input
+        id="product-price"
+        type="number"
+        min="0.01"
+        max="9999999999.99"
+        step="0.01"
+        formControlName="price"
+        placeholder="Ej. 12.50"
+        [attr.aria-invalid]="form.controls.price.touched && form.controls.price.invalid"
+        aria-describedby="product-price-help"
+      />
+      <p
+        id="product-price-help"
+        [class.field-error]="form.controls.price.touched && form.controls.price.invalid"
+      >
+        Entre 0.01 y 9999999999.99, con hasta dos decimales.
+      </p>
+    </div>
+    <label class="mt-6 flex cursor-pointer items-center gap-3"
+      ><input type="checkbox" formControlName="available" class="size-5 accent-[#655273]" />
+      Producto disponible</label
+    >
+    <p class="owner-note">
+      Un producto no disponible se conserva en el catálogo y sigue contando para el límite de tu
+      plan.
+    </p>
+    @if (error()) {
+      <p class="submit-error" role="alert">{{ error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="secondary-button" [disabled]="saving()" (click)="close()">
+        Cancelar
+      </button>
+      <button type="submit" class="primary-button" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : editing() ? 'Guardar cambios' : 'Crear producto' }}
+      </button>
+    </div>
+  </form>
+</dialog>

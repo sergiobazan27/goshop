@@ -1,0 +1,225 @@
+<p class="sr-only" role="status">{{ success() }}</p>
+<a class="mobile-order-link" href="#order-summary">Ver tu pedido · {{ quantity() }} productos</a>
+<div class="order-layout" [class.closed]="order().status === 'CLOSED'" [attr.aria-busy]="saving()">
+  @if (order().status === 'OPEN') {
+    <section class="order-catalog" aria-label="Carta para tomar el pedido">
+      <div class="catalog-toolbar">
+        <label class="catalog-search">
+          <svg lucideSearch [size]="17" [strokeWidth]="1.7" aria-hidden="true"></svg>
+          <input
+            type="search"
+            placeholder="Buscar productos"
+            aria-label="Buscar productos"
+            maxlength="100"
+            [value]="search()"
+            [disabled]="saving() || disabled()"
+            (input)="searchProducts($any($event.target).value)"
+          />
+        </label>
+        <div class="catalog-tabs" aria-label="Filtrar productos por disponibilidad">
+          <button
+            type="button"
+            [class.active]="available() === null"
+            [attr.aria-pressed]="available() === null"
+            [disabled]="saving() || disabled()"
+            (click)="filterProducts(null)"
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            [class.active]="available() === true"
+            [attr.aria-pressed]="available() === true"
+            [disabled]="saving() || disabled()"
+            (click)="filterProducts(true)"
+          >
+            Disponibles
+          </button>
+          <button
+            type="button"
+            [class.active]="available() === false"
+            [attr.aria-pressed]="available() === false"
+            [disabled]="saving() || disabled()"
+            (click)="filterProducts(false)"
+          >
+            No disponibles
+          </button>
+        </div>
+      </div>
+      @if (productsLoading()) {
+        <div class="empty-state" role="status"><p>Cargando productos…</p></div>
+      } @else if (productsError()) {
+        <div class="empty-state">
+          <p role="alert">{{ productsError() }}</p>
+          <button type="button" class="text-button" (click)="loadProducts()">Reintentar</button>
+        </div>
+      } @else if (products(); as catalog) {
+        @if (catalog.items.length) {
+          <div class="menu-grid">
+            @for (product of catalog.items; track product.id) {
+              <app-order-product-card
+                [product]="product"
+                [quantity]="productQuantity(product.id)"
+                [disabled]="saving() || disabled()"
+                (added)="add(product)"
+              ></app-order-product-card>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <h3>No hay productos para mostrar</h3>
+            <p>
+              {{
+                search() || available() !== null
+                  ? 'Prueba otra búsqueda o selecciona Todos.'
+                  : 'Todavía no hay productos en el catálogo de tu negocio.'
+              }}
+            </p>
+          </div>
+        }
+        <nav class="catalog-pagination" aria-label="Paginación y actualización de la carta">
+          <button
+            type="button"
+            class="text-button"
+            [disabled]="saving() || disabled()"
+            (click)="loadProducts(catalog.page)"
+          >
+            Actualizar carta
+          </button>
+          @if (catalog.totalPages > 1) {
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                class="text-button"
+                [disabled]="saving() || disabled() || catalog.page === 0"
+                (click)="loadProducts(catalog.page - 1)"
+              >
+                Anterior
+              </button>
+              <span>Página {{ catalog.page + 1 }} de {{ catalog.totalPages }}</span>
+              <button
+                type="button"
+                class="text-button"
+                [disabled]="saving() || disabled() || catalog.page + 1 >= catalog.totalPages"
+                (click)="loadProducts(catalog.page + 1)"
+              >
+                Siguiente
+              </button>
+            </div>
+          }
+        </nav>
+      }
+    </section>
+  }
+  <section id="order-summary" class="order-summary" aria-labelledby="summary-heading">
+    <div class="summary-heading">
+      <div>
+        <h2 id="summary-heading">Tu pedido</h2>
+        <p>{{ order().table.name }} · {{ quantity() }} productos</p>
+      </div>
+      <svg lucideReceiptText [size]="20" [strokeWidth]="1.7" aria-hidden="true"></svg>
+    </div>
+    @if (error()) {
+      <p
+        class="mx-[22px] mt-5 rounded-lg border border-[#ebc5ca] bg-[#fbeef0] p-4 text-sm text-[#92272f]"
+        role="alert"
+      >
+        {{ error() }}
+      </p>
+    }
+    @if (order().items.length) {
+      <div class="draft-list">
+        @for (item of order().items; track item.productId) {
+          <div class="draft-item">
+            <div class="draft-info">
+              <h3>{{ item.name }}</h3>
+              <p>S/ {{ item.unitPrice | number: '1.2-2' }} por unidad</p>
+              @if (order().status === 'OPEN') {
+                <div class="quantity">
+                  <button
+                    type="button"
+                    [disabled]="saving() || disabled()"
+                    [attr.aria-label]="'Quitar una unidad de ' + item.name"
+                    (click)="save(item.productId, item.quantity - 1)"
+                  >
+                    <svg lucideMinus [size]="14" aria-hidden="true"></svg>
+                  </button>
+                  <span [attr.aria-label]="'Cantidad de ' + item.name">{{ item.quantity }}</span>
+                  <button
+                    type="button"
+                    [disabled]="saving() || disabled() || item.quantity >= 999"
+                    [attr.aria-label]="'Agregar una unidad de ' + item.name"
+                    (click)="save(item.productId, item.quantity + 1)"
+                  >
+                    <svg lucidePlus [size]="14" aria-hidden="true"></svg>
+                  </button>
+                </div>
+              } @else {
+                <p>{{ item.quantity }} unidades</p>
+              }
+            </div>
+            <span class="draft-total">S/ {{ item.total | number: '1.2-2' }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="summary-empty">
+        <svg lucideLeaf [size]="32" [strokeWidth]="1.7" aria-hidden="true"></svg>
+        <h3>{{ order().status === 'OPEN' ? 'El pedido empieza aquí' : 'Sin productos' }}</h3>
+        <p>
+          {{
+            order().status === 'OPEN'
+              ? 'Agrega productos de la carta. Se guardarán en este pedido.'
+              : 'Esta atención se cerró sin productos.'
+          }}
+        </p>
+      </div>
+    }
+    <div class="order-bottom">
+      <div class="order-total">
+        <span>Importe del pedido</span
+        ><strong aria-live="polite">S/ {{ order().total | number: '1.2-2' }}</strong>
+      </div>
+      @if (order().status === 'OPEN') {
+        <button
+          type="button"
+          class="primary-button"
+          [disabled]="saving() || disabled()"
+          (click)="closeDialog().open(order())"
+        >
+          Finalizar atención
+        </button>
+        <p class="save-note" role="status">
+          {{ saving() ? 'Guardando cambios…' : 'Los cambios se guardan automáticamente.' }}
+        </p>
+      } @else {
+        <p class="save-note">Pedido cerrado. Solo consulta.</p>
+      }
+      <details class="order-details">
+        <summary>Detalle del pedido</summary>
+        <p [title]="order().id">Pedido #{{ order().id.slice(0, 8) }}</p>
+        <p>
+          Abierto el {{ order().createdAt | date: 'dd/MM/yyyy, HH:mm' }} por {{ order().openedBy }}.
+        </p>
+        @if (order().status === 'CLOSED') {
+          <p>
+            Cerrado el {{ order().closedAt | date: 'dd/MM/yyyy, HH:mm' }} por
+            {{ order().closedBy }}.
+          </p>
+        }
+      </details>
+      <button
+        type="button"
+        class="text-button w-full"
+        [disabled]="saving() || disabled()"
+        (click)="refresh()"
+      >
+        Actualizar pedido
+      </button>
+    </div>
+  </section>
+</div>
+<app-order-close-dialog
+  (closed)="orderClosed($event)"
+  (busy)="closingChanged($event)"
+></app-order-close-dialog>

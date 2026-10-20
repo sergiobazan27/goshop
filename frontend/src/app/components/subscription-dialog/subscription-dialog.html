@@ -1,0 +1,350 @@
+<dialog #dialog aria-labelledby="subscription-title" (cancel)="cancel($event)">
+  <div class="dialog-heading">
+    <div>
+      <h2 id="subscription-title">Suscripción</h2>
+      <p>{{ business()?.name }}</p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      [disabled]="saving()"
+      (click)="close()"
+      aria-label="Cerrar suscripción"
+    >
+      <svg lucideX [size]="20" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <p class="text-xs leading-6 text-[#6c6375]">
+    Fechas en {{ zone }}. El vencimiento marca el momento exacto en que termina la vigencia.
+  </p>
+  @if (business()?.status === 'SUSPENDED') {
+    <p class="submit-error">
+      El negocio está suspendido. Renovar la suscripción no retira esa suspensión.
+    </p>
+  }
+  @if (success()) {
+    <p role="status" class="mt-4 rounded-lg bg-[#edf5ef] p-4 text-sm text-[#30583f]">
+      {{ success() }}
+    </p>
+  }
+  @if (loading()) {
+    <p role="status" class="py-6 text-sm">Cargando suscripción…</p>
+  } @else if (error()) {
+    <p class="submit-error" role="alert">{{ error() }}</p>
+    <button class="secondary-button mt-4" type="button" (click)="load()">Reintentar</button>
+  } @else {
+    @if (current(); as subscription) {
+      <section class="owner-note" aria-labelledby="current-subscription-title">
+        <h3 id="current-subscription-title" class="font-semibold">
+          {{ subscription.plan.name }} — {{ statuses[subscription.status] }}
+        </h3>
+        <dl class="mt-3 grid gap-2">
+          <div>
+            <dt class="font-semibold">Inicio</dt>
+            <dd>{{ subscription.startsAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Vencimiento</dt>
+            <dd>{{ subscription.expiresAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Límites contratados</dt>
+            <dd>
+              {{ subscription.plan.maxTables }} mesas, {{ subscription.plan.maxUsers }} usuarios y
+              {{ subscription.plan.maxProducts }} productos.
+            </dd>
+          </div>
+        </dl>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="choose('renew')"
+          >
+            Renovar suscripción
+          </button>
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="choose('change')"
+          >
+            Cambiar plan
+          </button>
+        </div>
+      </section>
+    } @else {
+      <p class="owner-note">
+        Este negocio todavía no tiene una suscripción. Asigna un plan y su vigencia para habilitar
+        el acceso operativo.
+      </p>
+    }
+
+    @if (mode(); as action) {
+      <section
+        class="mt-6 border-t border-[#e5e1e9] pt-5"
+        aria-labelledby="subscription-action-title"
+      >
+        <h3 id="subscription-action-title" class="font-semibold">
+          {{
+            action === 'assign'
+              ? 'Asignar suscripción'
+              : action === 'renew'
+                ? 'Renovar suscripción'
+                : 'Cambiar plan'
+          }}
+        </h3>
+        <div class="field">
+          <label for="subscription-plan-search">Buscar un plan activo</label>
+          <div class="flex flex-wrap gap-2">
+            <input
+              id="subscription-plan-search"
+              type="search"
+              maxlength="100"
+              class="min-w-0 flex-1"
+              [value]="planSearch()"
+              (input)="planSearch.set($any($event.target).value)"
+              (keydown.enter)="$event.preventDefault(); loadPlans()"
+              [disabled]="saving()"
+            /><button
+              class="secondary-button"
+              type="button"
+              [disabled]="saving()"
+              (click)="loadPlans()"
+            >
+              Buscar
+            </button>
+          </div>
+        </div>
+        @if (plansLoading()) {
+          <p role="status" class="mt-3 text-sm">Cargando planes…</p>
+        }
+        @if (plansError()) {
+          <p role="alert" class="submit-error">{{ plansError() }}</p>
+          <button
+            type="button"
+            class="secondary-button mt-2"
+            [disabled]="saving()"
+            (click)="loadPlans()"
+          >
+            Reintentar planes
+          </button>
+        }
+        <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="saving()">
+          <div class="field">
+            <label for="subscription-plan">Plan activo</label>
+            <select
+              id="subscription-plan"
+              formControlName="planId"
+              class="min-h-11 w-full rounded-lg border border-[#c5bdcd] bg-white px-3 py-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#655273]"
+              [attr.aria-invalid]="form.controls.planId.touched && form.controls.planId.invalid"
+              aria-describedby="subscription-plan-help"
+            >
+              <option value="">Selecciona un plan</option>
+              @for (plan of plans()?.items ?? []; track plan.id) {
+                <option
+                  [value]="plan.id"
+                  [disabled]="action === 'change' && plan.id === current()?.plan?.id"
+                >
+                  {{ plan.name }}
+                </option>
+              }
+            </select>
+            <p id="subscription-plan-help">
+              {{
+                form.controls.planId.touched && form.controls.planId.invalid
+                  ? 'Selecciona un plan activo.'
+                  : action === 'change'
+                    ? 'Elige un plan diferente al actual.'
+                    : 'Puedes elegir el plan actual para renovar, si sigue activo.'
+              }}
+            </p>
+            @if (selectedPlan(); as selected) {
+              <p>
+                {{ selected.maxTables }} mesas, {{ selected.maxUsers }} usuarios y
+                {{ selected.maxProducts }} productos.
+              </p>
+            }
+          </div>
+          @if (plans(); as available) {
+            @if (!plansLoading() && available.total === 0) {
+              <p class="owner-note">
+                No hay planes activos que coincidan. Cambia la búsqueda o crea un plan desde el menú
+                Planes.
+              </p>
+            }
+            @if (available.totalPages > 1) {
+              <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <button
+                  type="button"
+                  class="secondary-button"
+                  [disabled]="saving() || plansLoading() || available.page === 0"
+                  (click)="loadPlans(available.page - 1)"
+                >
+                  Planes anteriores</button
+                ><span>{{ available.page + 1 }} de {{ available.totalPages }}</span
+                ><button
+                  type="button"
+                  class="secondary-button"
+                  [disabled]="
+                    saving() || plansLoading() || available.page + 1 >= available.totalPages
+                  "
+                  (click)="loadPlans(available.page + 1)"
+                >
+                  Más planes
+                </button>
+              </div>
+            }
+          }
+          @if (action === 'assign' || (action === 'renew' && current()?.status === 'EXPIRED')) {
+            <div class="field">
+              <label for="subscription-start">{{
+                action === 'assign' ? 'Inicio' : 'Nuevo inicio (opcional)'
+              }}</label
+              ><input
+                id="subscription-start"
+                type="datetime-local"
+                formControlName="startsAt"
+                [attr.aria-invalid]="
+                  form.controls.startsAt.touched && form.controls.startsAt.invalid
+                "
+                aria-describedby="subscription-start-help"
+              />
+              <p id="subscription-start-help">
+                {{
+                  action === 'renew'
+                    ? 'Déjalo vacío para comenzar al guardar. También puedes programar un inicio futuro.'
+                    : 'Puedes programar el inicio para una fecha futura.'
+                }}
+              </p>
+            </div>
+          }
+          @if (action !== 'change') {
+            <div class="field">
+              <label for="subscription-expiry">{{
+                action === 'renew' ? 'Nuevo vencimiento' : 'Vencimiento'
+              }}</label
+              ><input
+                id="subscription-expiry"
+                type="datetime-local"
+                formControlName="expiresAt"
+                [attr.aria-invalid]="
+                  form.controls.expiresAt.touched && form.controls.expiresAt.invalid
+                "
+                aria-describedby="subscription-expiry-help"
+              />
+              <p id="subscription-expiry-help">
+                {{
+                  action === 'renew' && current()?.status !== 'EXPIRED'
+                    ? 'Debe ser posterior al vencimiento actual. Se conserva el inicio.'
+                    : 'Debe ser posterior al inicio y a la hora actual.'
+                }}
+              </p>
+            </div>
+          } @else {
+            <p class="owner-note">
+              El cambio de plan es inmediato y conserva las fechas actuales. No elimina datos
+              existentes aunque reduzca los límites.
+            </p>
+          }
+          @if (formError()) {
+            <p class="submit-error" role="alert">{{ formError() }}</p>
+          }
+          <div class="dialog-actions">
+            @if (current()) {
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="saving()"
+                (click)="mode.set(null)"
+              >
+                Cancelar cambio
+              </button>
+            }
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="saving() || plansLoading() || !plans()?.items?.length"
+            >
+              {{ saving() ? 'Guardando…' : 'Guardar suscripción' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <section
+      class="mt-7 border-t border-[#e5e1e9] pt-5"
+      aria-labelledby="subscription-history-title"
+    >
+      <h3 id="subscription-history-title" class="font-semibold">Historial de la suscripción</h3>
+      @if (historyError()) {
+        <p class="submit-error" role="alert">{{ historyError() }}</p>
+        <button
+          class="secondary-button mt-2"
+          type="button"
+          [disabled]="saving()"
+          (click)="loadHistory(history()?.page ?? 0)"
+        >
+          Reintentar historial
+        </button>
+      }
+      @if (historyLoading()) {
+        <p role="status" class="mt-3 text-sm">Cargando historial…</p>
+      }
+      @if (history(); as records) {
+        @if (!records.items.length) {
+          <p class="mt-3 text-sm text-[#6c6375]">Todavía no hay cambios registrados.</p>
+        }
+        <ol class="mt-3 divide-y divide-[#e5e1e9]">
+          @for (entry of records.items; track entry.id) {
+            <li class="py-4 text-xs leading-6">
+              <strong class="block text-sm"
+                >{{ actions[entry.action] }}: {{ entry.subscription.plan.name }}</strong
+              >
+              <p>{{ entry.changedAt | date: 'dd/MM/yyyy, HH:mm' }} por {{ entry.actorName }}</p>
+              <p>
+                Vigencia: {{ entry.subscription.startsAt | date: 'dd/MM/yyyy, HH:mm' }} hasta
+                {{ entry.subscription.expiresAt | date: 'dd/MM/yyyy, HH:mm' }}.
+              </p>
+              <p>
+                {{ entry.subscription.plan.maxTables }} mesas,
+                {{ entry.subscription.plan.maxUsers }} usuarios y
+                {{ entry.subscription.plan.maxProducts }} productos.
+              </p>
+            </li>
+          }
+        </ol>
+        @if (records.totalPages > 1) {
+          <nav
+            class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs"
+            aria-label="Páginas del historial"
+          >
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="saving() || historyLoading() || records.page === 0"
+              (click)="loadHistory(records.page - 1)"
+            >
+              Anterior</button
+            ><span>{{ records.page + 1 }} de {{ records.totalPages }}</span
+            ><button
+              type="button"
+              class="secondary-button"
+              [disabled]="saving() || historyLoading() || records.page + 1 >= records.totalPages"
+              (click)="loadHistory(records.page + 1)"
+            >
+              Siguiente
+            </button>
+          </nav>
+        }
+      }
+    </section>
+  }
+  <div class="mt-6 flex justify-end">
+    <button type="button" class="secondary-button" [disabled]="saving()" (click)="close()">
+      Cerrar
+    </button>
+  </div>
+</dialog>

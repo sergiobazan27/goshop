@@ -1,0 +1,88 @@
+<dialog #dialog aria-labelledby="table-form-title" (cancel)="cancel($event)">
+  <div class="dialog-heading">
+    <div>
+      <h2 id="table-form-title">
+        {{ deleting() ? 'Eliminar mesa' : editing() ? 'Editar mesa' : 'Nueva mesa' }}
+      </h2>
+      <p>
+        {{
+          deleting() ? 'Esta acción no se puede deshacer.' : 'Prepara las mesas para tu servicio.'
+        }}
+      </p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Cerrar formulario de mesa"
+      [disabled]="saving()"
+      (click)="close()"
+    >
+      <svg lucideX [size]="20" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="saving()">
+    @if (deleting()) {
+      <p class="owner-note">
+        Se eliminará <strong class="break-words">{{ editing()?.name }}</strong> de la configuración
+        de tu negocio.
+      </p>
+    } @else {
+      <div class="field">
+        <label for="table-name">Nombre de la mesa</label>
+        <input
+          id="table-name"
+          formControlName="name"
+          maxlength="100"
+          autofocus
+          placeholder="Ej. Mesa 1 o Terraza 2"
+          [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+          aria-describedby="table-name-help"
+        />
+        <p
+          id="table-name-help"
+          [class.field-error]="form.controls.name.touched && form.controls.name.invalid"
+        >
+          Usa un nombre único de hasta 100 caracteres.
+        </p>
+      </div>
+      <div class="field">
+        <label for="table-capacity">Capacidad de personas</label>
+        <input
+          id="table-capacity"
+          type="number"
+          min="1"
+          max="2147483647"
+          step="1"
+          formControlName="capacity"
+          [attr.aria-invalid]="form.controls.capacity.touched && form.controls.capacity.invalid"
+          aria-describedby="table-capacity-help"
+        />
+        <p
+          id="table-capacity-help"
+          [class.field-error]="form.controls.capacity.touched && form.controls.capacity.invalid"
+        >
+          Escribe un número entero mayor que cero.
+        </p>
+      </div>
+    }
+    @if (error()) {
+      <p class="submit-error" role="alert">{{ error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="secondary-button" [disabled]="saving()" (click)="close()">
+        Cancelar
+      </button>
+      <button type="submit" class="primary-button" [disabled]="saving()">
+        {{
+          saving()
+            ? 'Guardando…'
+            : deleting()
+              ? 'Eliminar mesa'
+              : editing()
+                ? 'Guardar cambios'
+                : 'Crear mesa'
+        }}
+      </button>
+    </div>
+  </form>
+</dialog>

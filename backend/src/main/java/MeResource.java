@@ -14,6 +14,8 @@ import platform.business.application.CurrentBusinessService;
 import platform.membership.application.MembershipService;
 import platform.membership.application.MembershipSummary.BusinessSummary;
 import platform.membership.domain.MembershipRole;
+import platform.subscription.application.SubscriptionService;
+import platform.subscription.application.SubscriptionSummary;
 
 @Path("/api/me")
 @Authenticated
@@ -31,6 +33,9 @@ public class MeResource {
   @Inject
   CurrentBusinessService currentBusinessService;
 
+  @Inject
+  SubscriptionService subscriptions;
+
   @GET
   public MeResponse me() {
     var membership = membershipService
@@ -42,7 +47,8 @@ public class MeResource {
       identity.getPrincipal().getName(),
       identity.getRoles(),
       membership == null ? null : membership.role(),
-      membership == null ? null : membership.business()
+      membership == null ? null : membership.business(),
+      membership == null ? null : subscriptions.findByBusinessId(membership.business().id()).orElse(null)
     );
   }
 
@@ -59,6 +65,7 @@ public class MeResource {
     String username,
     Set<String> roles,
     MembershipRole membershipRole,
-    BusinessSummary business
+    BusinessSummary business,
+    SubscriptionSummary subscription
   ) {}
 }

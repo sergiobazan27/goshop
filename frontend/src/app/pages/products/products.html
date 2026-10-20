@@ -1,0 +1,188 @@
+<a
+  class="fixed top-3 left-3 z-40 -translate-y-[160%] rounded-lg bg-[#362c40] px-5 py-3 text-white focus:translate-y-0"
+  href="#products-content"
+  >Saltar al contenido</a
+>
+<app-sidebar
+  [username]="username"
+  [businessName]="user()?.business?.name ?? 'Mi negocio'"
+  [roleLabel]="canManage ? 'Dueño del negocio' : 'Mozo'"
+></app-sidebar>
+<div class="admin-workspace">
+  <app-header
+    [businessName]="user()?.business?.name ?? 'Mi negocio'"
+    sectionName="Catálogo de productos"
+    [accountName]="username"
+  ></app-header>
+  <main id="products-content" tabindex="-1">
+    <div class="page-heading">
+      <div>
+        <h1>Productos</h1>
+        <p>
+          {{
+            canManage ? 'Prepara el catálogo de tu negocio.' : 'Consulta lo que ofrece tu negocio.'
+          }}
+        </p>
+      </div>
+      @if (canManage) {
+        <button
+          type="button"
+          class="primary-button disabled:cursor-default disabled:opacity-40"
+          [disabled]="!canCreate()"
+          (click)="editor()?.open()"
+        >
+          <svg lucidePlus [size]="19" aria-hidden="true"></svg> Nuevo producto
+        </button>
+      }
+    </div>
+    @if (success()) {
+      <p
+        role="status"
+        class="mb-6 rounded-lg border border-[#bdd4c6] bg-[#edf5ef] p-4 text-sm text-[#30583f]"
+      >
+        {{ success() }}
+      </p>
+    }
+    <section class="records-panel" aria-labelledby="products-heading" [attr.aria-busy]="loading()">
+      <div class="panel-heading">
+        <div>
+          <h2 id="products-heading">
+            Catálogo <span class="count">{{ error() ? '—' : loading() ? '…' : total() }}</span>
+          </h2>
+          @if (!loading() && !error()) {
+            @if (canManage) {
+              <p>
+                {{ total() }} de {{ user()?.subscription?.plan?.maxProducts }} productos permitidos
+                por tu plan. Incluye los no disponibles.
+              </p>
+              @if (!canCreate()) {
+                <p role="status">
+                  Alcanzaste el límite del plan. Puedes editar los productos existentes o solicitar
+                  un plan mayor.
+                </p>
+              }
+            } @else {
+              <p>Solo consulta. El dueño administra los productos y su disponibilidad.</p>
+            }
+          }
+        </div>
+        <button type="button" class="text-button" [disabled]="loading()" (click)="load()">
+          Actualizar
+        </button>
+      </div>
+      @if (loading()) {
+        <div class="empty-state" role="status"><p>Cargando productos…</p></div>
+      } @else if (error()) {
+        <div class="empty-state">
+          <h3>No pudimos mostrar los productos</h3>
+          <p role="alert">{{ error() }}</p>
+          <button class="text-button" type="button" (click)="load()">Reintentar</button>
+        </div>
+      } @else if (products().length) {
+        <div class="table-wrap">
+          <table>
+            <caption class="sr-only">
+              Productos de tu negocio, precios y disponibilidad
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Producto</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Disponibilidad</th>
+                @if (canManage) {
+                  <th scope="col">Acciones</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of products(); track product.id) {
+                <tr>
+                  <td class="min-w-44 max-w-md break-words">
+                    <strong class="font-semibold">{{ product.name }}</strong>
+                    @if (product.description) {
+                      <p class="mt-1 text-xs leading-relaxed whitespace-pre-line text-[#6c6375]">
+                        {{ product.description }}
+                      </p>
+                    }
+                  </td>
+                  <td class="whitespace-nowrap">{{ product.price | number: '1.2-2' }}</td>
+                  <td>
+                    <span class="status-badge" [class.suspended]="!product.available">{{
+                      product.available ? 'Disponible' : 'No disponible'
+                    }}</span>
+                  </td>
+                  @if (canManage) {
+                    <td>
+                      <button
+                        type="button"
+                        class="text-button"
+                        [attr.aria-label]="'Editar ' + product.name"
+                        (click)="editor()?.open(product)"
+                      >
+                        Editar
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <h3>{{ canManage ? 'Crea tu primer producto' : 'El catálogo todavía está vacío' }}</h3>
+          <p>
+            {{
+              canManage
+                ? 'Agrega el nombre, precio y una descripción para tu equipo.'
+                : 'El dueño puede agregar los productos del negocio.'
+            }}
+          </p>
+          @if (canManage) {
+            <button
+              type="button"
+              class="text-button"
+              [disabled]="!canCreate()"
+              (click)="editor()?.open()"
+            >
+              Crear un producto
+            </button>
+          }
+        </div>
+      }
+      @if (!loading() && !error() && total() > 0) {
+        <nav
+          class="list-footer flex flex-wrap items-center justify-between gap-3"
+          aria-label="Paginación de productos"
+        >
+          <p aria-live="polite">
+            {{ page() * size + 1 }}–{{ page() * size + products().length }} de
+            {{ total() }} productos
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              class="text-button disabled:cursor-default disabled:opacity-40"
+              [disabled]="page() === 0"
+              (click)="goToPage(page() - 1)"
+            >
+              Anterior
+            </button>
+            <span>Página {{ page() + 1 }} de {{ totalPages() }}</span>
+            <button
+              type="button"
+              class="text-button disabled:cursor-default disabled:opacity-40"
+              [disabled]="page() + 1 >= totalPages()"
+              (click)="goToPage(page() + 1)"
+            >
+              Siguiente
+            </button>
+          </div>
+        </nav>
+      }
+    </section>
+  </main>
+</div>
+@if (canManage) {
+  <app-product-form (saved)="productSaved($event)"></app-product-form>
+}

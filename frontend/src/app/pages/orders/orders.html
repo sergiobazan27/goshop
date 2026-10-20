@@ -1,0 +1,227 @@
+<a
+  class="fixed top-3 left-3 z-40 -translate-y-[160%] rounded-lg bg-[#362c40] px-5 py-3 text-white focus:translate-y-0"
+  href="#orders-content"
+  >Saltar al contenido</a
+>
+<app-sidebar
+  [username]="username"
+  [businessName]="user()?.business?.name ?? 'Mi negocio'"
+  [roleLabel]="isOwner ? 'Dueño del negocio' : 'Mozo'"
+></app-sidebar>
+<div class="admin-workspace">
+  <app-header
+    [businessName]="user()?.business?.name ?? 'Mi negocio'"
+    [sectionName]="selected() ? 'Pedido por mesa' : 'Pedidos'"
+    [accountName]="username"
+  ></app-header>
+  <main id="orders-content" tabindex="-1">
+    <div class="page-heading">
+      @if (selected(); as order) {
+        <div class="order-heading">
+          <button
+            type="button"
+            class="back-button"
+            aria-label="Volver a mesas"
+            [disabled]="opening() || editing()"
+            (click)="backToTables()"
+          >
+            <svg lucideArrowLeft [size]="20" aria-hidden="true"></svg>
+          </button>
+          <div>
+            <h1>{{ order.table.name }}</h1>
+            <p>
+              {{
+                order.status === 'OPEN'
+                  ? 'Elige los productos para continuar la atención.'
+                  : 'Consulta el detalle de esta atención finalizada.'
+              }}
+            </p>
+          </div>
+        </div>
+        <span class="status-badge">{{
+          order.status === 'OPEN' ? 'En atención' : 'Finalizada'
+        }}</span>
+      } @else {
+        <div>
+          <h1>Una mesa, un buen servicio.</h1>
+          <p>Elige dónde tomar el siguiente pedido.</p>
+        </div>
+        <button
+          type="button"
+          class="text-button"
+          [disabled]="loading() || opening() || editing()"
+          (click)="load()"
+        >
+          Actualizar mesas
+        </button>
+      }
+    </div>
+    <div [hidden]="!!selected()">
+      <section
+        class="records-panel mb-6"
+        aria-labelledby="service-tables-heading"
+        [attr.aria-busy]="loading()"
+      >
+        <div class="panel-heading">
+          <div>
+            <h2 id="service-tables-heading">
+              Mesas del negocio
+              <span class="count">{{ error() ? '—' : loading() ? '…' : total() }}</span>
+            </h2>
+            <p>Una mesa está ocupada mientras tenga un pedido abierto.</p>
+          </div>
+        </div>
+        @if (loading()) {
+          <div class="empty-state" role="status"><p>Cargando mesas…</p></div>
+        } @else if (error()) {
+          <div class="empty-state">
+            <h3>No pudimos mostrar las mesas</h3>
+            <p role="alert">{{ error() }}</p>
+            <button type="button" class="text-button" (click)="load()">Reintentar</button>
+          </div>
+        } @else if (tables().length) {
+          @if (highlightedTable(); as target) {
+            <p class="px-[22px] pb-4 text-sm text-[#655273]">
+              {{ target.table.name }} está seleccionada. Pulsa
+              {{ target.orderId ? 'Ver pedido' : 'Abrir pedido' }} para continuar.
+            </p>
+          }
+          <div class="service-tables">
+            @for (entry of tables(); track entry.table.id) {
+              <article
+                class="service-table"
+                [class.occupied]="entry.orderId"
+                [class.current]="
+                  selected()?.table?.id === entry.table.id ||
+                  highlightedTableId() === entry.table.id
+                "
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <svg lucideArmchair [size]="24" [strokeWidth]="1.5" aria-hidden="true"></svg
+                  ><span class="status-badge" [class.suspended]="entry.orderId">{{
+                    entry.orderId ? 'Ocupada' : 'Libre'
+                  }}</span>
+                </div>
+                <h3 class="mt-4 font-semibold break-words">{{ entry.table.name }}</h3>
+                <p class="mt-1 text-xs text-[#6c6375]">
+                  {{ entry.table.capacity }}
+                  {{ entry.table.capacity === 1 ? 'persona' : 'personas' }}
+                </p>
+                @if (entry.orderId) {
+                  <p class="mt-3 text-sm">
+                    {{ entry.quantity }} unidades · {{ entry.total | number: '1.2-2' }}
+                  </p>
+                } @else {
+                  <p class="mt-3 text-sm text-[#6c6375]">Sin pedido abierto</p>
+                }
+                <button
+                  type="button"
+                  class="mt-4 w-full"
+                  [class.text-button]="entry.orderId"
+                  [class.primary-button]="!entry.orderId"
+                  [disabled]="opening() || editing()"
+                  [attr.aria-label]="
+                    (entry.orderId ? 'Ver pedido de ' : 'Abrir pedido en ') + entry.table.name
+                  "
+                  (click)="choose(entry)"
+                >
+                  {{ entry.orderId ? 'Ver pedido' : 'Abrir pedido' }}
+                </button>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <h3>Todavía no hay mesas</h3>
+            <p>
+              {{
+                isOwner
+                  ? 'Configura tus mesas antes de abrir pedidos.'
+                  : 'Solicita al dueño que configure las mesas del negocio.'
+              }}
+            </p>
+            @if (isOwner) {
+              <a routerLink="/tables" class="text-button">Configurar mesas</a>
+            }
+          </div>
+        }
+        @if (!loading() && !error() && total() > 0) {
+          <nav
+            class="list-footer flex flex-wrap items-center justify-between gap-3"
+            aria-label="Paginación de mesas para pedidos"
+          >
+            <p aria-live="polite">
+              {{ page() * size + 1 }}–{{ page() * size + tables().length }} de {{ total() }} mesas
+            </p>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                class="text-button"
+                [disabled]="opening() || editing() || page() === 0"
+                (click)="goToPage(page() - 1)"
+              >
+                Anterior</button
+              ><span>Página {{ page() + 1 }} de {{ totalPages() }}</span
+              ><button
+                type="button"
+                class="text-button"
+                [disabled]="opening() || editing() || page() + 1 >= totalPages()"
+                (click)="goToPage(page() + 1)"
+              >
+                Siguiente
+              </button>
+            </div>
+          </nav>
+        }
+      </section>
+    </div>
+    @if (selected() && error()) {
+      <div class="mb-6 rounded-lg border border-[#ebc5ca] bg-[#fbeef0] p-4 text-sm text-[#92272f]">
+        <p role="alert">{{ error() }}</p>
+        <button
+          type="button"
+          class="text-button"
+          [disabled]="loading() || opening() || editing()"
+          (click)="load()"
+        >
+          Reintentar
+        </button>
+      </div>
+    }
+    @if (opening()) {
+      <p class="mb-6 text-sm" role="status">Cargando pedido…</p>
+    }
+    @if (detailError()) {
+      <div class="mb-6 rounded-lg border border-[#ebc5ca] bg-[#fbeef0] p-4 text-sm text-[#92272f]">
+        <p role="alert">{{ detailError() }}</p>
+        @if (selected()) {
+          <button
+            type="button"
+            class="text-button"
+            [disabled]="opening() || editing()"
+            (click)="reloadOrder()"
+          >
+            Reintentar consulta del pedido
+          </button>
+        }
+      </div>
+    }
+    @if (selected(); as order) {
+      <app-order-editor
+        [order]="order"
+        [disabled]="loading() || opening() || !!error() || !!detailError()"
+        (saved)="orderSaved($event)"
+        (reload)="reloadOrder()"
+        (busy)="editing.set($event)"
+      ></app-order-editor>
+    } @else if (!opening() && !detailError() && !error() && !loading() && total() > 0) {
+      <p class="py-6 text-center text-sm text-[#6c6375]">Elige una mesa para ver su pedido aquí.</p>
+    }
+    <div class="mt-6" [hidden]="!!selected()">
+      <app-order-history
+        [disabled]="loading() || opening() || editing()"
+        (selected)="viewClosedOrder($event)"
+      ></app-order-history>
+    </div>
+  </main>
+</div>

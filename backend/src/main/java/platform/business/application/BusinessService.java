@@ -5,6 +5,8 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
+import jakarta.persistence.LockModeType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,6 +14,7 @@ import platform.business.domain.BusinessStatus;
 import platform.business.infrastructure.persistence.BusinessEntity;
 import platform.business.infrastructure.persistence.BusinessRepository;
 import platform.membership.application.MembershipService;
+import platform.membership.application.MembershipSummary.BusinessSummary;
 import shared.application.Page;
 import shared.application.ResourceNotFoundException;
 
@@ -28,6 +31,34 @@ public class BusinessService {
   ) {
     this.businessRepository = businessRepository;
     this.membershipService = membershipService;
+  }
+
+  @Transactional(TxType.MANDATORY)
+  @RolesAllowed({"owner", "waiter"})
+  public BusinessSummary lockForOperation(@NotNull UUID id) {
+    var business = businessRepository.findById(id, LockModeType.PESSIMISTIC_WRITE);
+    if (business == null) {
+      throw new ResourceNotFoundException("Business.NotFound", "No se encontró el negocio.");
+    }
+    businessRepository.getEntityManager().refresh(business);
+    return new BusinessSummary(business.id, business.name, business.status);
+  }
+
+  @Transactional(TxType.MANDATORY)
+  @RolesAllowed("admin")
+  public BusinessEntity lockForSubscription(@NotNull UUID id) {
+    var business = businessRepository.findById(id, LockModeType.PESSIMISTIC_WRITE);
+    if (business == null) {
+      throw new ResourceNotFoundException("Business.NotFound", "No se encontró el negocio.");
+    }
+    return business;
+  }
+
+  @Transactional
+  @RolesAllowed("admin")
+  public void requireExisting(@NotNull UUID id) {
+    businessRepository.findByIdOptional(id).orElseThrow(() ->
+      new ResourceNotFoundException("Business.NotFound", "No se encontró el negocio."));
   }
 
   @Transactional

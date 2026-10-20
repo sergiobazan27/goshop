@@ -1,0 +1,31 @@
+<dialog
+  #dialog
+  aria-labelledby="close-order-title"
+  aria-describedby="close-order-description"
+  (cancel)="cancel($event)"
+>
+  <h2 id="close-order-title">Cerrar pedido</h2>
+  <p class="mt-4 font-semibold break-words">{{ order()?.table?.name }}</p>
+  <p class="mt-3 text-sm">Total: {{ order()?.total | number: '1.2-2' }}</p>
+  <p id="close-order-description" class="owner-note">
+    El pedido quedará en el historial y ya no se podrá editar. La mesa quedará libre para una nueva
+    atención. Este cierre no registra cobros ni pagos.
+  </p>
+  @if (error()) {
+    <p class="submit-error" role="alert">{{ error() }}</p>
+  }
+  <div class="dialog-actions" [attr.aria-busy]="saving()">
+    <button
+      type="button"
+      class="secondary-button"
+      autofocus
+      [disabled]="saving()"
+      (click)="dismiss()"
+    >
+      Cancelar
+    </button>
+    <button type="button" class="primary-button" [disabled]="saving()" (click)="confirm()">
+      {{ saving() ? 'Cerrando…' : 'Cerrar pedido' }}
+    </button>
+  </div>
+</dialog>

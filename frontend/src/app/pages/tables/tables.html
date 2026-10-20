@@ -1,0 +1,157 @@
+<a
+  class="fixed top-3 left-3 z-40 -translate-y-[160%] rounded-lg bg-[#362c40] px-5 py-3 text-white focus:translate-y-0"
+  href="#tables-content"
+  >Saltar al contenido</a
+>
+<app-sidebar
+  [username]="username"
+  [businessName]="user()?.business?.name ?? 'Mi negocio'"
+></app-sidebar>
+<div class="admin-workspace">
+  <app-header
+    [businessName]="user()?.business?.name ?? 'Mi negocio'"
+    sectionName="Configuración de mesas"
+    [accountName]="username"
+  ></app-header>
+  <main id="tables-content" tabindex="-1">
+    <div class="page-heading">
+      <div>
+        <h1>Mesas</h1>
+        <p>Organiza los espacios de tu negocio.</p>
+      </div>
+      <button
+        type="button"
+        class="primary-button disabled:cursor-default disabled:opacity-40"
+        [disabled]="!canCreate()"
+        (click)="editor().open()"
+      >
+        <svg lucidePlus [size]="19" aria-hidden="true"></svg> Nueva mesa
+      </button>
+    </div>
+    @if (success()) {
+      <p
+        role="status"
+        class="mb-6 rounded-lg border border-[#bdd4c6] bg-[#edf5ef] p-4 text-sm text-[#30583f]"
+      >
+        {{ success() }}
+      </p>
+    }
+    <section class="records-panel" aria-labelledby="tables-heading" [attr.aria-busy]="loading()">
+      <div class="panel-heading">
+        <div>
+          <h2 id="tables-heading">
+            Mesas configuradas
+            <span class="count">{{ error() ? '—' : loading() ? '…' : total() }}</span>
+          </h2>
+          @if (!loading() && !error()) {
+            <p>
+              {{ total() }} de {{ user()?.subscription?.plan?.maxTables }} mesas permitidas por tu
+              plan.
+            </p>
+            @if (!canCreate()) {
+              <p role="status">
+                Alcanzaste el límite del plan. Puedes editar o eliminar mesas, o solicitar un plan
+                mayor.
+              </p>
+            }
+          }
+        </div>
+      </div>
+      @if (loading()) {
+        <div class="empty-state" role="status"><p>Cargando mesas…</p></div>
+      } @else if (error()) {
+        <div class="empty-state">
+          <h3>No pudimos mostrar las mesas</h3>
+          <p role="alert">{{ error() }}</p>
+          <button class="text-button" type="button" (click)="load()">Reintentar</button>
+        </div>
+      } @else if (tables().length) {
+        <div class="table-wrap">
+          <table>
+            <caption class="sr-only">
+              Mesas de tu negocio y su capacidad
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Mesa</th>
+                <th scope="col">Capacidad</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (table of tables(); track table.id) {
+                <tr>
+                  <td class="min-w-36 font-semibold break-words">{{ table.name }}</td>
+                  <td>{{ table.capacity }} {{ table.capacity === 1 ? 'persona' : 'personas' }}</td>
+                  <td>
+                    <div class="flex flex-wrap gap-4">
+                      <button
+                        type="button"
+                        class="text-button"
+                        [attr.aria-label]="'Editar ' + table.name"
+                        (click)="editor().open(table)"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="text-button"
+                        [attr.aria-label]="'Eliminar ' + table.name"
+                        (click)="editor().open(table, true)"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <h3>Configura tu primera mesa</h3>
+          <p>Asigna un nombre y la cantidad de personas que puede recibir.</p>
+          <button
+            type="button"
+            class="text-button"
+            [disabled]="!canCreate()"
+            (click)="editor().open()"
+          >
+            Crear una mesa
+          </button>
+        </div>
+      }
+      @if (!loading() && !error() && total() > 0) {
+        <nav
+          class="list-footer flex flex-wrap items-center justify-between gap-3"
+          aria-label="Paginación de mesas"
+        >
+          <p aria-live="polite">
+            {{ page() * size + 1 }}–{{ page() * size + tables().length }} de {{ total() }} mesas
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              class="text-button disabled:cursor-default disabled:opacity-40"
+              [disabled]="page() === 0"
+              (click)="goToPage(page() - 1)"
+            >
+              Anterior
+            </button>
+            <span>Página {{ page() + 1 }} de {{ totalPages() }}</span>
+            <button
+              type="button"
+              class="text-button disabled:cursor-default disabled:opacity-40"
+              [disabled]="page() + 1 >= totalPages()"
+              (click)="goToPage(page() + 1)"
+            >
+              Siguiente
+            </button>
+          </div>
+        </nav>
+      }
+    </section>
+  </main>
+</div>
+<app-dining-table-form (saved)="tableSaved($event)"></app-dining-table-form>

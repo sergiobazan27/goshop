@@ -123,6 +123,14 @@
                       <button
                         type="button"
                         class="text-button"
+                        [attr.aria-label]="'Administrar suscripción de ' + business.name"
+                        (click)="subscriptionDialog().open(business)"
+                      >
+                        Suscripción
+                      </button>
+                      <button
+                        type="button"
+                        class="text-button"
                         [attr.aria-label]="
                           (business.status === 'ACTIVE' ? 'Suspender ' : 'Reactivar ') +
                           business.name
@@ -234,3 +242,4 @@
 </div>
 <app-business-create-form (created)="businessCreated($event)"></app-business-create-form>
 <app-business-status-dialog (updated)="businessStatusChanged($event)"></app-business-status-dialog>
+<app-subscription-dialog (saved)="subscriptionSaved($event)"></app-subscription-dialog>

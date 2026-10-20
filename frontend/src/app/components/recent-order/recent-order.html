@@ -1,23 +1,24 @@
-<div
-  class="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-[11px] border-t border-[#e5e1e9] py-[18px] text-[#362c40] min-[681px]:py-5"
+<a
+  routerLink="/orders"
+  [queryParams]="{ orderId: order().id }"
+  [attr.aria-label]="'Ver pedido abierto de ' + order().tableName"
+  class="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-[11px] border-t border-[#e5e1e9] py-[18px] text-[#362c40] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a7592f] min-[681px]:py-5"
 >
-  <span
-    class="grid h-11 w-10 place-items-center rounded-[7px] bg-[#f2edf6] text-[19px] font-medium tracking-[-0.04em] tabular-nums"
-    >{{ table() }}</span
-  >
+  <span class="grid h-11 w-10 place-items-center rounded-[7px] bg-[#f2edf6]"
+    ><svg lucideArmchair [size]="21" [strokeWidth]="1.7" aria-hidden="true"></svg
+  ></span>
   <div class="min-w-0">
-    <strong class="block text-[13px] font-semibold">Mesa {{ table() }}</strong>
-    <p class="mt-1 truncate text-xs text-[#6c6375]">
-      {{ quantity() }} productos · Pedido #{{ order() }}
+    <strong class="block text-[13px] font-semibold break-words">{{ order().tableName }}</strong>
+    <p class="mt-1 truncate text-xs text-[#6c6375]" [title]="order().id">
+      {{ order().quantity }} unidades · #{{ order().id.slice(0, 8) }}
     </p>
   </div>
   <div class="text-right">
     <span
-      class="inline-flex items-center gap-[5px] rounded-[5px] bg-[#edf4ee] px-2 py-[3px] text-xs leading-[1.6] font-medium text-[#38644d]"
-    >
-      <span class="size-[5px] rounded-full bg-current" aria-hidden="true"></span>
-      Enviado
-    </span>
-    <time class="mt-[5px] block text-xs text-[#6c6375]">{{ time() }}</time>
+      class="inline-flex items-center gap-[5px] rounded-[5px] bg-[#f2edf6] px-2 py-[3px] text-xs leading-[1.6] font-medium text-[#655273]"
+      ><span class="size-[5px] rounded-full bg-current" aria-hidden="true"></span>Abierto</span
+    ><time [attr.datetime]="order().createdAt" class="mt-[5px] block text-xs text-[#6c6375]">{{
+      order().createdAt | date: 'dd/MM, HH:mm'
+    }}</time>
   </div>
-</div>
+</a>

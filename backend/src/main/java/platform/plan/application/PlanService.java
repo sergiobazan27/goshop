@@ -5,6 +5,8 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
+import jakarta.persistence.LockModeType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,6 +15,7 @@ import platform.plan.infrastructure.persistence.PlanEntity;
 import platform.plan.infrastructure.persistence.PlanRepository;
 import shared.application.Page;
 import shared.application.ResourceNotFoundException;
+import shared.application.BusinessRuleException;
 
 @ApplicationScoped
 @RolesAllowed("admin")
@@ -22,6 +25,14 @@ public class PlanService {
   @Inject
   public PlanService(PlanRepository repository) {
     this.repository = repository;
+  }
+
+  @Transactional(TxType.MANDATORY)
+  public PlanEntity requireAvailable(@NotNull UUID id) {
+    var plan = repository.findById(id, LockModeType.PESSIMISTIC_READ);
+    if (plan == null) throw new ResourceNotFoundException("Plan.NotFound", "No se encontró el plan.");
+    if (!plan.active) throw new BusinessRuleException("Plan.Inactive", "Elige un plan activo.");
+    return plan;
   }
 
   @Transactional

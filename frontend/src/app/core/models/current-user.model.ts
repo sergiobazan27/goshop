@@ -1,4 +1,5 @@
 import { BusinessSummary } from './business.model';
+import { Subscription } from './subscription.model';
 
 export interface CurrentUser {
   sub: string;
@@ -6,4 +7,5 @@ export interface CurrentUser {
   roles: string[];
   membershipRole: 'OWNER' | 'WAITER' | null;
   business: BusinessSummary | null;
+  subscription: Subscription | null;
 }

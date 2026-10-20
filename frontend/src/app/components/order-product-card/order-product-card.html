@@ -1,0 +1,24 @@
+<article class="menu-product" [class.unavailable]="!product().available">
+  <div class="product-thumbnail" aria-hidden="true">
+    {{ product().name.charAt(0).toUpperCase() }}
+  </div>
+  <div class="menu-product-info">
+    <h3>{{ product().name }}</h3>
+    <p>{{ product().description }}</p>
+    <div class="menu-price">
+      <span>S/ {{ product().price | number: '1.2-2' }}</span>
+      <button
+        type="button"
+        class="add-product"
+        [disabled]="disabled() || !product().available || quantity() >= 999"
+        [attr.aria-label]="'Agregar una unidad de ' + product().name"
+        (click)="added.emit()"
+      >
+        <svg lucidePlus [size]="18" aria-hidden="true"></svg>
+      </button>
+    </div>
+    @if (!product().available) {
+      <small>No disponible</small>
+    }
+  </div>
+</article>

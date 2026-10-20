@@ -1,0 +1,20 @@
+.waiter-select {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #c5bdcd;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+}
+.waiter-select[aria-invalid='true'] {
+  border-color: #a43239;
+}
+.waiter-select:focus-visible {
+  outline: 3px solid #655273;
+  outline-offset: 3px;
+}
+.waiter-select:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

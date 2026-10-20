@@ -1,0 +1,101 @@
+<section class="records-panel" aria-labelledby="order-history-heading" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <div>
+      <h2 id="order-history-heading">
+        Pedidos cerrados
+        <span class="count">{{ loading() ? '…' : error() ? '—' : (history()?.total ?? 0) }}</span>
+      </h2>
+      <p>Consulta las atenciones finalizadas de tu negocio.</p>
+    </div>
+    <button type="button" class="text-button" [disabled]="disabled() || loading()" (click)="load()">
+      Actualizar historial
+    </button>
+  </div>
+  @if (loading()) {
+    <div class="empty-state" role="status"><p>Cargando historial…</p></div>
+  } @else if (error()) {
+    <div class="empty-state">
+      <p role="alert">{{ error() }}</p>
+      <button type="button" class="text-button" [disabled]="disabled()" (click)="load()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (history(); as data) {
+    @if (data.items.length) {
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only">
+            Pedidos cerrados, responsable y total
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Mesa</th>
+              <th scope="col">Cierre</th>
+              <th scope="col">Responsable</th>
+              <th scope="col">Total</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of data.items; track entry.id) {
+              <tr>
+                <td class="min-w-36 break-words font-semibold">{{ entry.tableName }}</td>
+                <td class="whitespace-nowrap">{{ entry.closedAt | date: 'dd/MM/yyyy, HH:mm' }}</td>
+                <td class="break-words">{{ entry.closedBy }}</td>
+                <td class="whitespace-nowrap">{{ entry.total | number: '1.2-2' }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="text-button"
+                    [disabled]="disabled()"
+                    [attr.aria-label]="
+                      'Ver pedido cerrado de ' +
+                      entry.tableName +
+                      ' del ' +
+                      (entry.closedAt | date: 'dd/MM/yyyy, HH:mm')
+                    "
+                    (click)="selected.emit(entry.id)"
+                  >
+                    Ver detalle
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <nav
+        class="list-footer flex flex-wrap items-center justify-between gap-3"
+        aria-label="Paginación de pedidos cerrados"
+      >
+        <p aria-live="polite">
+          {{ data.page * data.size + 1 }}–{{ data.page * data.size + data.items.length }} de
+          {{ data.total }} pedidos
+        </p>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            class="text-button"
+            [disabled]="disabled() || data.page === 0"
+            (click)="load(data.page - 1)"
+          >
+            Anterior</button
+          ><span>Página {{ data.page + 1 }} de {{ data.totalPages }}</span
+          ><button
+            type="button"
+            class="text-button"
+            [disabled]="disabled() || data.page + 1 >= data.totalPages"
+            (click)="load(data.page + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      </nav>
+    } @else {
+      <div class="empty-state">
+        <h3>Todavía no hay pedidos cerrados</h3>
+        <p>Al finalizar una atención, su pedido aparecerá aquí.</p>
+      </div>
+    }
+  }
+</section>

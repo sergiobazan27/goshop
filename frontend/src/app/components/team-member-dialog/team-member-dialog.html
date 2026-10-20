@@ -1,0 +1,161 @@
+<dialog #dialog aria-labelledby="team-member-title" (cancel)="cancel($event)">
+  <div class="dialog-heading">
+    <div>
+      <h2 id="team-member-title">{{ member() ? 'Desvincular mozo' : 'Agregar mozo' }}</h2>
+      <p>
+        {{
+          member()
+            ? 'Quita su acceso a este negocio.'
+            : 'Vincula una cuenta existente a tu negocio.'
+        }}
+      </p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Cerrar gestión de integrante"
+      [disabled]="saving()"
+      (click)="close()"
+    >
+      <svg lucideX [size]="20" aria-hidden="true"></svg>
+    </button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="saving()">
+    @if (member(); as target) {
+      <p class="font-semibold break-words">{{ target.username ?? target.keycloakUserId }}</p>
+      <p class="owner-note">
+        Este mozo dejará de acceder a tu negocio. Sus pedidos se conservarán. Su cuenta de Keycloak
+        seguirá existiendo y podrá volver a vincularse si hay cupo.
+      </p>
+    } @else {
+      <div class="field">
+        <label for="team-waiter-search">Buscar mozos disponibles</label>
+        <div class="flex flex-wrap gap-2">
+          <input
+            id="team-waiter-search"
+            type="search"
+            maxlength="255"
+            autofocus
+            autocomplete="off"
+            class="min-w-0 flex-1 basis-40"
+            placeholder="Nombre o usuario"
+            [value]="search()"
+            [disabled]="saving()"
+            (input)="search.set($any($event.target).value)"
+            (keydown.enter)="searchAvailable($event)"
+          />
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving() || availableLoading()"
+            (click)="searchAvailable()"
+          >
+            Buscar
+          </button>
+        </div>
+      </div>
+      @if (availableLoading()) {
+        <p class="mt-5 text-sm" role="status">Buscando mozos disponibles…</p>
+      } @else if (availableError()) {
+        <p class="submit-error" role="alert">{{ availableError() }}</p>
+        <button
+          type="button"
+          class="secondary-button mt-3"
+          [disabled]="saving()"
+          (click)="loadAvailable()"
+        >
+          Reintentar
+        </button>
+      } @else if (available(); as candidates) {
+        @if (candidates.items.length) {
+          <div class="field">
+            <label for="team-waiter">Mozo disponible</label>
+            <select
+              id="team-waiter"
+              class="waiter-select"
+              formControlName="keycloakUserId"
+              [attr.aria-invalid]="
+                form.controls.keycloakUserId.touched && form.controls.keycloakUserId.invalid
+              "
+              aria-describedby="team-waiter-help"
+            >
+              <option value="">Selecciona un mozo</option>
+              @for (waiter of candidates.items; track waiter.id) {
+                <option [value]="waiter.id">
+                  {{ waiter.displayName
+                  }}{{ waiter.displayName === waiter.username ? '' : ' (' + waiter.username + ')' }}
+                </option>
+              }
+            </select>
+            <p
+              id="team-waiter-help"
+              [class.field-error]="
+                form.controls.keycloakUserId.touched && form.controls.keycloakUserId.invalid
+              "
+            >
+              Selecciona la cuenta que quieres vincular.
+            </p>
+          </div>
+        } @else {
+          <p class="mt-5 text-sm" role="status">No hay mozos disponibles para esta búsqueda.</p>
+        }
+        <nav
+          class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#6c6375]"
+          aria-label="Paginación de mozos disponibles"
+        >
+          <span aria-live="polite"
+            >{{ candidates.total }}
+            {{ candidates.total === 1 ? 'mozo disponible' : 'mozos disponibles' }}</span
+          >
+          @if (candidates.totalPages > 1) {
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="saving() || candidates.page === 0"
+                (click)="loadAvailable(candidates.page - 1)"
+              >
+                Anterior</button
+              ><span>{{ candidates.page + 1 }} de {{ candidates.totalPages }}</span
+              ><button
+                type="button"
+                class="secondary-button"
+                [disabled]="saving() || candidates.page + 1 >= candidates.totalPages"
+                (click)="loadAvailable(candidates.page + 1)"
+              >
+                Siguiente
+              </button>
+            </div>
+          }
+        </nav>
+      }
+      <button
+        type="button"
+        class="secondary-button mt-4"
+        [disabled]="saving() || availableLoading()"
+        (click)="loadAvailable(available()?.page ?? 0)"
+      >
+        Actualizar lista
+      </button>
+      <p class="owner-note">
+        La cuenta debe estar habilitada, tener el rol waiter y no pertenecer a otro negocio. El
+        dueño y todos los mozos cuentan para el límite del plan.
+      </p>
+    }
+    @if (error()) {
+      <p class="submit-error" role="alert">{{ error() }}</p>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="secondary-button" [disabled]="saving()" (click)="close()">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="saving() || (!member() && (availableLoading() || form.invalid))"
+      >
+        {{ saving() ? 'Guardando…' : member() ? 'Desvincular mozo' : 'Agregar mozo' }}
+      </button>
+    </div>
+  </form>
+</dialog>

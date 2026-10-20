@@ -17,6 +17,8 @@ import { Business, BusinessListQuery } from '../../core/models/business.model';
 import { businessListError } from '../../core/errors/business-list-error';
 import { BusinessService } from '../../core/services/business.service';
 import { BusinessStatusDialog } from '../../components/business-status-dialog/business-status-dialog';
+import { SubscriptionDialog } from '../../components/subscription-dialog/subscription-dialog';
+import { Subscription } from '../../core/models/subscription.model';
 
 @Component({
   selector: 'app-admin',
@@ -26,6 +28,7 @@ import { BusinessStatusDialog } from '../../components/business-status-dialog/bu
     Sidebar,
     BusinessCreateForm,
     BusinessStatusDialog,
+    SubscriptionDialog,
     LucidePlus,
     LucideSearch,
     LucideStore,
@@ -42,6 +45,7 @@ export class Admin implements OnInit {
   private filters: Pick<BusinessListQuery, 'search' | 'status'> = { search: '', status: '' };
   readonly createForm = viewChild.required(BusinessCreateForm);
   readonly statusDialog = viewChild.required(BusinessStatusDialog);
+  readonly subscriptionDialog = viewChild.required(SubscriptionDialog);
   readonly username = keycloak.tokenParsed?.['preferred_username'] ?? 'Administrador';
   readonly businesses = signal<Business[]>([]);
   readonly search = signal('');
@@ -120,5 +124,9 @@ export class Admin implements OnInit {
     this.search.set('');
     this.status.set('');
     this.applyFilters();
+  }
+
+  subscriptionSaved(subscription: Subscription) {
+    this.success.set(`Suscripción guardada: ${subscription.plan.name}.`);
   }
 }

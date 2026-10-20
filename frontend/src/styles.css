@@ -1,3 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/InstrumentSans.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Instrument Sans', sans-serif;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}

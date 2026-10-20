@@ -1,0 +1,72 @@
+.service-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 14px;
+  padding: 0 22px 22px;
+}
+.service-table {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e5e1e9;
+  border-radius: 12px;
+  background: #faf9fb;
+}
+.service-table.current {
+  outline: 2px solid #655273;
+  outline-offset: 2px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.order-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.order-heading h1 {
+  overflow-wrap: anywhere;
+}
+.back-button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #dcd5e3;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+.service-table.occupied {
+  background: #655273;
+  color: white;
+  border-color: #655273;
+}
+.service-table.occupied p {
+  color: #eee7f3;
+}
+.service-table.occupied .text-button {
+  color: white;
+  background: #534261;
+}
+.service-table.occupied .status-badge {
+  background: #7d698c;
+  color: white;
+}
+
+main {
+  max-width: 1560px;
+}
+.page-heading {
+  margin-bottom: 28px;
+}
+.page-heading p {
+  font-size: 13px;
+}
+@media (min-width: 1201px) {
+  main {
+    padding-top: 24px;
+  }
+}

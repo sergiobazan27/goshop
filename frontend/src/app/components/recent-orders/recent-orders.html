@@ -10,29 +10,31 @@
         id="recent-orders-heading"
         class="text-[22px] leading-[1.3] font-semibold tracking-[-0.035em]"
       >
-        Pedidos recientes
+        Pedidos en curso
       </h2>
-      <p class="mt-[5px] text-xs text-[#6c6375]">Últimos envíos a cocina.</p>
+      <p class="mt-[5px] text-xs text-[#6c6375]">Los últimos pedidos que siguen abiertos.</p>
     </div>
     <svg lucideClock [size]="20" [strokeWidth]="1.7" class="shrink-0" aria-hidden="true"></svg>
   </div>
-  <ul class="px-[18px] min-[681px]:px-5 min-[1201px]:px-6">
-    <li><app-recent-order table="05" order="105" quantity="4" time="19:51"></app-recent-order></li>
-    <li><app-recent-order table="03" order="104" quantity="2" time="19:47"></app-recent-order></li>
-    <li><app-recent-order table="08" order="103" quantity="3" time="19:43"></app-recent-order></li>
-    <li><app-recent-order table="12" order="102" quantity="4" time="19:39"></app-recent-order></li>
-    <li><app-recent-order table="10" order="101" quantity="2" time="19:35"></app-recent-order></li>
-  </ul>
+  @if (orders().length) {
+    <ul class="px-[18px] min-[681px]:px-5 min-[1201px]:px-6">
+      @for (order of orders(); track order.id) {
+        <li><app-recent-order [order]="order"></app-recent-order></li>
+      }
+    </ul>
+  } @else {
+    <p class="px-6 pb-6 text-sm leading-relaxed text-[#6c6375]">
+      No hay pedidos abiertos en este momento.
+    </p>
+  }
   <div
     class="flex items-center justify-between gap-3 border-t border-[#e5e1e9] px-[18px] py-[13px] text-xs min-[681px]:px-5 min-[1201px]:px-6"
   >
-    <span class="text-[#6c6375]">Envíos simulados</span>
-    <button
-      type="button"
+    <span class="text-[#6c6375]">Hasta 5 pedidos recientes</span
+    ><a
+      routerLink="/orders"
       class="inline-flex min-h-11 items-center gap-1.5 font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a7592f]"
-    >
-      Ver pedidos
-      <svg lucideArrowRight [size]="16" [strokeWidth]="1.7" aria-hidden="true"></svg>
-    </button>
+      >Ver pedidos<svg lucideArrowRight [size]="16" [strokeWidth]="1.7" aria-hidden="true"></svg
+    ></a>
   </div>
 </section>

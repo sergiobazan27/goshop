@@ -59,6 +59,8 @@ public class MembershipService {
       );
     }
 
+    membershipRepository.lockUserAssignment(keycloakUserId);
+
     if (membershipRepository
       .findByKeycloakUserId(keycloakUserId)
       .isPresent()

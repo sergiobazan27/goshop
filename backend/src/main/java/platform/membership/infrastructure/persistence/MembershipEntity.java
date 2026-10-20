@@ -46,6 +46,10 @@ public class MembershipEntity extends TimestampedEntity {
     )
     public String keycloakUserId;
 
+    @Size(max = 255)
+    @Column(length = 255)
+    public String username;
+
     @NotNull 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "business_id", nullable = false)

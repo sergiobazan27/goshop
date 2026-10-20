@@ -9,7 +9,10 @@
     @if (mode() === 'admin') {
       <div><strong>Administración</strong><small>Tu plataforma</small></div>
     } @else {
-      <div><strong>Café Olivo</strong><small>Negocio de ejemplo</small></div>
+      <div>
+        <strong>{{ businessName() }}</strong
+        ><small>Mi negocio</small>
+      </div>
     }
   </div>
 
@@ -39,32 +42,76 @@
         <span>Planes</span>
       </a>
     } @else {
-      <a class="nav-link" href="#inicio" aria-label="Resumen" aria-current="page" title="Resumen">
+      <a
+        class="nav-link"
+        routerLink="/"
+        routerLinkActive="selected"
+        [routerLinkActiveOptions]="{ exact: true }"
+        aria-label="Resumen"
+        ariaCurrentWhenActive="page"
+        title="Resumen"
+      >
         <svg lucideLayoutDashboard [strokeWidth]="1.7" aria-hidden="true"></svg>
         <span>Resumen</span>
       </a>
-      <a class="nav-link" href="#mesas" aria-label="Mesas" title="Mesas">
-        <svg lucideArmchair [strokeWidth]="1.7" aria-hidden="true"></svg>
-        <span>Mesas</span>
-      </a>
-      <a class="nav-link" href="#productos" aria-label="Productos" title="Productos">
-        <svg lucidePackage [strokeWidth]="1.7" aria-hidden="true"></svg>
-        <span>Productos</span>
-      </a>
-      <a class="nav-link" href="#pedidos" aria-label="Pedidos" title="Pedidos">
-        <svg lucideReceiptText [strokeWidth]="1.7" aria-hidden="true"></svg>
-        <span>Pedidos</span>
-      </a>
+      @if (canManageTables) {
+        <a
+          class="nav-link"
+          routerLink="/tables"
+          routerLinkActive="selected"
+          ariaCurrentWhenActive="page"
+          aria-label="Mesas"
+          title="Mesas"
+        >
+          <svg lucideArmchair [strokeWidth]="1.7" aria-hidden="true"></svg>
+          <span>Mesas</span>
+        </a>
+      }
+      @if (canManageTables) {
+        <a
+          class="nav-link"
+          routerLink="/team"
+          routerLinkActive="selected"
+          ariaCurrentWhenActive="page"
+          aria-label="Equipo"
+          title="Equipo"
+          ><svg lucideUsers [strokeWidth]="1.7" aria-hidden="true"></svg><span>Equipo</span></a
+        >
+      }
+      @if (canViewCatalog) {
+        <a
+          class="nav-link"
+          routerLink="/products"
+          routerLinkActive="selected"
+          ariaCurrentWhenActive="page"
+          aria-label="Productos"
+          title="Productos"
+        >
+          <svg lucidePackage [strokeWidth]="1.7" aria-hidden="true"></svg>
+          <span>Productos</span>
+        </a>
+      }
+      @if (canViewCatalog) {
+        <a
+          class="nav-link"
+          routerLink="/orders"
+          routerLinkActive="selected"
+          ariaCurrentWhenActive="page"
+          aria-label="Pedidos"
+          title="Pedidos"
+        >
+          <svg lucideReceiptText [strokeWidth]="1.7" aria-hidden="true"></svg>
+          <span>Pedidos</span>
+        </a>
+      }
     }
   </nav>
 
   <div class="profile">
-    <span class="avatar" aria-hidden="true">{{
-      mode() === 'admin' ? username().slice(0, 2).toUpperCase() : 'SB'
-    }}</span>
+    <span class="avatar" aria-hidden="true">{{ username().slice(0, 2).toUpperCase() }}</span>
     <div>
       <strong>{{ username() }}</strong
-      ><small>{{ mode() === 'admin' ? 'Administrador' : 'Dueño del negocio' }}</small>
+      ><small>{{ mode() === 'admin' ? 'Administrador' : roleLabel() }}</small>
     </div>
   </div>
 </aside>
